@@ -273,6 +273,21 @@ export function findOgImage(html: string, base: string): string | undefined {
 
 export type ResolvedArticle = { url: string; image?: string };
 
+/** Foto oficial (og:image) de uma matéria, lendo só o <head> da página. */
+export async function fetchOgImage(url: string, timeoutMs = 6000): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "user-agent": BROWSER_UA, "accept-language": "pt-BR,pt;q=0.9" },
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+      redirect: "follow",
+    });
+    return res.ok ? (findOgImage(await readHead(res), res.url || url) ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Descobre o link original de uma notícia do Google Notícias (mesmo método usado por leitores de RSS)
  * e a foto oficial da matéria (og:image). Devolve null se não conseguir.

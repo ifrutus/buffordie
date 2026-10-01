@@ -3,6 +3,7 @@ import { cache } from "react";
 import {
   defaultHeaders,
   fetchSource,
+  fetchOgImage,
   isGoogleNewsLink,
   mergeItems,
   resolveGoogleNewsArticle,
@@ -30,19 +31,32 @@ const resolveCached = unstable_cache(
   { revalidate: 7 * 24 * 3600 },
 );
 
-/** Resolve até `limit` notícias do Google Notícias em paralelo, dentro de um prazo; o resto fica para a próxima rodada. */
-async function enrich(items: RadarItem[], limit = 60, budgetMs = 20_000): Promise<RadarItem[]> {
-  const pending = items.filter((i) => isGoogleNewsLink(i.url)).slice(0, limit);
+/** Foto oficial de uma matéria sem imagem no feed — guardada por 7 dias. */
+const ogImageCached = unstable_cache(async (url: string) => fetchOgImage(url), ["radar-og-image-v1"], {
+  revalidate: 7 * 24 * 3600,
+});
+
+/**
+ * Completa as notícias: link real + foto das que vêm pelo Google Notícias e foto oficial das que vêm sem imagem.
+ * Roda em paralelo dentro de um prazo; o que não der tempo fica para a próxima rodada (o resto já está em cache).
+ */
+async function enrich(items: RadarItem[], limit = 90, budgetMs = 20_000): Promise<RadarItem[]> {
+  const pending = items.filter((i) => isGoogleNewsLink(i.url) || !i.image).slice(0, limit);
   const resolved = new Map<string, { url: string; image?: string }>();
   const deadline = new Promise<void>((r) => setTimeout(r, budgetMs));
   const queue = [...pending];
   const worker = async () => {
     for (let it = queue.shift(); it; it = queue.shift()) {
-      const r = await resolveCached(it.url).catch(() => null);
-      if (r) resolved.set(it.id, r);
+      if (isGoogleNewsLink(it.url)) {
+        const r = await resolveCached(it.url).catch(() => null);
+        if (r) resolved.set(it.id, r);
+      } else {
+        const image = await ogImageCached(it.url).catch(() => null);
+        if (image) resolved.set(it.id, { url: it.url, image });
+      }
     }
   };
-  await Promise.race([Promise.all(Array.from({ length: 6 }, worker)), deadline]);
+  await Promise.race([Promise.all(Array.from({ length: 8 }, worker)), deadline]);
   return items.map((i) => {
     const r = resolved.get(i.id);
     return r ? { ...i, url: r.url, image: i.image ?? r.image } : i;
