@@ -1,0 +1,102 @@
+// Modelo de dados do BuffOrDie (PostgreSQL).
+// Ainda não conectado às páginas — hoje elas leem src/lib/content.ts.
+// Próximo passo: `npm i -D prisma && npm i @prisma/client`, configurar DATABASE_URL e migrar.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  READER
+  AUTHOR
+  EDITOR
+  ADMIN
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  username  String    @unique
+  email     String    @unique
+  image     String?
+  role      Role      @default(READER)
+  createdAt DateTime  @default(now())
+  posts     Post[]
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Category {
+  id    String @id @default(cuid())
+  slug  String @unique
+  name  String
+  posts Post[]
+}
+
+model Platform {
+  id    String @id @default(cuid())
+  slug  String @unique // ps5, xbox-series, switch, pc, mobile
+  name  String
+  posts Post[]
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  excerpt     String
+  content     String // Markdown/MDX
+  coverUrl    String?
+  score       Decimal?   @db.Decimal(3, 1) // nota de review
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  platforms   Platform[]
+  tags        String[]
+  comments    Comment[]
+  likes       Like[]
+
+  @@index([status, publishedAt])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  body      String
+  hidden    Boolean   @default(false) // moderação
+  createdAt DateTime  @default(now())
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  parent    Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId  String?
+  replies   Comment[] @relation("Replies")
+
+  @@index([postId, createdAt])
+}
+
+model Like {
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@id([postId, userId]) // 1 like por usuário por post
+}
