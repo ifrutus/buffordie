@@ -14,6 +14,8 @@ export type Source = {
   defaultSection?: SectionSlug;
   /** Fonte generalista (tecnologia/cultura pop): só entra o que for de games. */
   gamesOnly?: boolean;
+  /** Domínio usado no plano C (feed do Google Notícias filtrado pelo site). */
+  googleNewsSite?: string;
 };
 
 export type RadarItem = {
@@ -141,16 +143,19 @@ function idFrom(url: string) {
   return (h >>> 0).toString(36);
 }
 
-export function parseFeed(xml: string, source: Source): RadarItem[] {
+export function parseFeed(xml: string, source: Source, opts: { googleNews?: boolean } = {}): RadarItem[] {
   const doc = parser.parse(xml);
   const rssItems = arr(doc?.rss?.channel?.item ?? doc?.["rdf:RDF"]?.item);
   const atomEntries = arr(doc?.feed?.entry);
   const out: RadarItem[] = [];
 
   const push = (raw: Record<string, unknown>, link: string, html: string, date: string, cats: string[]) => {
-    const title = stripHtml(textOf(raw.title));
+    let title = stripHtml(textOf(raw.title));
+    // Google Notícias acrescenta " - Nome do Site" no fim do título.
+    if (opts.googleNews) title = title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/, "");
     if (!title || !link) return;
-    const excerpt = shortExcerpt(html);
+    let excerpt = shortExcerpt(html);
+    if (opts.googleNews || excerpt.toLowerCase().startsWith(title.toLowerCase().slice(0, 30))) excerpt = "";
     if (source.gamesOnly && !isAboutGames(title, excerpt, cats)) return;
     const d = new Date(date);
     out.push({
@@ -195,33 +200,56 @@ export function discoverFeedUrls(html: string, base: string): string[] {
 
 const looksLikeFeed = (body: string) => /<(rss|feed|rdf:RDF)\b/i.test(body.slice(0, 2000));
 
+export function googleNewsFeed(site: string) {
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(`site:${site} when:7d`)}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
+}
+
 export type SourceResult = { source: Source; feedUrl?: string; items: RadarItem[]; error?: string };
 
 export async function fetchSource(source: Source, fetcher: Fetcher): Promise<SourceResult> {
-  const tried: string[] = [];
-  const tryUrl = async (url: string) => {
-    tried.push(url);
-    const res = await fetcher(url);
-    if (!res.ok) return null;
-    const body = await res.text();
-    return looksLikeFeed(body) ? body : null;
+  const tried: string[] = []; // "url → resultado", para diagnóstico
+  const attempted = new Set<string>();
+
+  const get = async (url: string) => {
+    attempted.add(url);
+    try {
+      const res = await fetcher(url);
+      const body = res.ok ? await res.text() : "";
+      return { status: res.status, body };
+    } catch (e) {
+      return { status: 0, body: "", err: e instanceof Error ? (e.cause instanceof Error ? e.cause.message : e.message) : String(e) };
+    }
+  };
+
+  const tryFeed = async (url: string) => {
+    const r = await get(url);
+    const ok = r.status === 200 && looksLikeFeed(r.body);
+    tried.push(`${url} → ${ok ? "ok" : r.status ? `HTTP ${r.status}${r.status === 200 ? " (não é feed)" : ""}` : r.err}`);
+    return ok ? r.body : null;
   };
 
   try {
     for (const url of source.feeds) {
-      const body = await tryUrl(url).catch(() => null);
+      const body = await tryFeed(url);
       if (body) return { source, feedUrl: url, items: parseFeed(body, source) };
     }
     // Plano B: descobrir o feed pela própria página do site.
-    const home = await fetcher(source.home);
-    if (home.ok) {
-      for (const url of discoverFeedUrls(await home.text(), source.home)) {
-        if (tried.includes(url)) continue;
-        const body = await tryUrl(url).catch(() => null);
+    const home = await get(source.home);
+    tried.push(`${source.home} (página) → ${home.status ? `HTTP ${home.status}` : home.err}`);
+    if (home.status === 200) {
+      for (const url of discoverFeedUrls(home.body, source.home)) {
+        if (attempted.has(url)) continue;
+        const body = await tryFeed(url);
         if (body) return { source, feedUrl: url, items: parseFeed(body, source) };
       }
     }
-    return { source, items: [], error: `nenhum feed válido (tentados: ${tried.join(", ")})` };
+    // Plano C: Google Notícias filtrado pelo domínio da fonte.
+    if (source.googleNewsSite) {
+      const url = googleNewsFeed(source.googleNewsSite);
+      const body = await tryFeed(url);
+      if (body) return { source, feedUrl: url, items: parseFeed(body, source, { googleNews: true }) };
+    }
+    return { source, items: [], error: `nenhum feed válido — ${tried.join(" | ")}` };
   } catch (e) {
     return { source, items: [], error: e instanceof Error ? e.message : String(e) };
   }

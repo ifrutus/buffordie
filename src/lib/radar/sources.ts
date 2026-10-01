@@ -8,12 +8,14 @@ export const sources: Source[] = [
     name: "IGN Brasil",
     home: "https://br.ign.com/",
     feeds: ["https://br.ign.com/feed.xml", "https://br.ign.com/rss"],
+    googleNewsSite: "br.ign.com",
   },
   {
     id: "theenemy",
     name: "The Enemy",
     home: "https://www.theenemy.com.br/",
     feeds: ["https://www.theenemy.com.br/rss", "https://www.theenemy.com.br/feed", "https://www.theenemy.com.br/rss.xml"],
+    googleNewsSite: "theenemy.com.br",
   },
   {
     id: "voxel",
@@ -32,7 +34,8 @@ export const sources: Source[] = [
     id: "maisesports",
     name: "Mais Esports",
     home: "https://maisesports.com.br/",
-    feeds: ["https://maisesports.com.br/feed/"],
+    feeds: ["https://maisesports.com.br/feed/", "https://maisesports.com.br/rss"],
+    googleNewsSite: "maisesports.com.br",
     defaultSection: "competitivo",
   },
   {
@@ -40,6 +43,7 @@ export const sources: Source[] = [
     name: "Draft5",
     home: "https://draft5.gg/",
     feeds: ["https://draft5.gg/feed", "https://draft5.gg/rss"],
+    googleNewsSite: "draft5.gg",
     defaultSection: "competitivo",
   },
   {
@@ -59,6 +63,7 @@ export const sources: Source[] = [
     name: "Adrenaline",
     home: "https://www.adrenaline.com.br/",
     feeds: ["https://www.adrenaline.com.br/feed/", "https://www.adrenaline.com.br/rss/"],
+    googleNewsSite: "adrenaline.com.br",
     gamesOnly: true,
   },
   {
@@ -66,6 +71,7 @@ export const sources: Source[] = [
     name: "Jovem Nerd",
     home: "https://jovemnerd.com.br/",
     feeds: ["https://jovemnerd.com.br/feed/"],
+    googleNewsSite: "jovemnerd.com.br",
     gamesOnly: true,
   },
 ];
