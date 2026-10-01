@@ -25,16 +25,29 @@ const nextFetcher = (url: string) =>
   });
 
 /** Link real + foto de uma notícia do Google Notícias — resolvido uma vez e guardado por 7 dias. */
+// Falhas lançam erro de propósito: o unstable_cache não guarda erros, então a próxima rodada tenta de novo.
 const resolveCached = unstable_cache(
-  async (gnewsUrl: string) => resolveGoogleNewsArticle(gnewsUrl),
-  ["radar-gnews-resolve-v1"],
+  async (gnewsUrl: string) => {
+    const r = await resolveGoogleNewsArticle(gnewsUrl);
+    if (!r) throw new Error("não resolvido");
+    return r;
+  },
+  ["radar-gnews-resolve-v2"],
   { revalidate: 7 * 24 * 3600 },
 );
 
 /** Foto oficial de uma matéria sem imagem no feed — guardada por 7 dias. */
-const ogImageCached = unstable_cache(async (url: string) => fetchOgImage(url), ["radar-og-image-v1"], {
-  revalidate: 7 * 24 * 3600,
-});
+const ogImageCached = unstable_cache(
+  async (url: string) => {
+    const img = await fetchOgImage(url);
+    if (!img) throw new Error("sem foto");
+    return img;
+  },
+  ["radar-og-image-v1"],
+  {
+    revalidate: 7 * 24 * 3600,
+  },
+);
 
 /**
  * Completa as notícias: link real + foto das que vêm pelo Google Notícias e foto oficial das que vêm sem imagem.
