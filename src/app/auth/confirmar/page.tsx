@@ -21,7 +21,11 @@ export default function ConfirmarPage() {
 
     if (failure || !access_token || !refresh_token) {
       Promise.resolve().then(() =>
-        setError(failure?.replace(/\+/g, " ") ?? "Link inválido ou incompleto. Peça um novo link de acesso."),
+        setError(
+          failure && /expired|invalid/i.test(failure)
+            ? "O link expirou ou já foi usado. Peça um novo link de acesso."
+            : "Link inválido ou incompleto. Peça um novo link de acesso.",
+        ),
       );
       return;
     }
