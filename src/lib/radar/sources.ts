@@ -9,6 +9,7 @@ export const sources: Source[] = [
     home: "https://br.ign.com/",
     feeds: ["https://br.ign.com/feed.xml", "https://br.ign.com/rss"],
     googleNewsSite: "br.ign.com",
+    gamesOnly: true, // a IGN Brasil também cobre filmes, séries e anime
   },
   {
     // The Enemy foi encerrado em 2025; a cobertura de games passou para o Omelete (Omelete Z).

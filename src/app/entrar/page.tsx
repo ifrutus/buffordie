@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { signInWithEmail, signInWithProvider } from "./actions";
+
+/** Quais logins sociais estão ativados no Supabase (Authentication → Sign In / Providers). */
+async function enabledProviders(): Promise<Record<string, boolean>> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: SUPABASE_KEY },
+      next: { revalidate: 300 },
+    });
+    return res.ok ? ((await res.json()).external ?? {}) : {};
+  } catch {
+    return {};
+  }
+}
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -21,6 +35,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/entrar">)
   const next = one(sp.next) ?? "/";
   const erro = one(sp.erro);
   const enviado = one(sp.enviado);
+  const enabled = await enabledProviders();
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
@@ -40,16 +55,25 @@ export default async function SignInPage({ searchParams }: PageProps<"/entrar">)
 
       <form action={signInWithProvider} className="mt-8 space-y-3">
         <input type="hidden" name="next" value={next} />
-        {providers.map((p) => (
-          <button
-            key={p.id}
-            name="provider"
-            value={p.id}
-            className={`w-full rounded-md px-4 py-3 text-left font-semibold transition ${p.style}`}
-          >
-            Continuar com {p.label}
-          </button>
-        ))}
+        {providers.map((p) =>
+          enabled[p.id] ? (
+            <button
+              key={p.id}
+              name="provider"
+              value={p.id}
+              className={`w-full rounded-md px-4 py-3 text-left font-semibold transition ${p.style}`}
+            >
+              Continuar com {p.label}
+            </button>
+          ) : (
+            <div
+              key={p.id}
+              className="flex w-full items-center justify-between rounded-md border border-line bg-panel px-4 py-3 font-semibold text-zinc-500"
+            >
+              Continuar com {p.label} <span className="text-xs font-normal">em breve</span>
+            </div>
+          ),
+        )}
       </form>
 
       <div className="my-8 flex items-center gap-4 text-xs uppercase tracking-widest text-zinc-600">

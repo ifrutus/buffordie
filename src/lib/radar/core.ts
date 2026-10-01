@@ -108,7 +108,8 @@ export function classify(title: string, excerpt: string, categories: string[], f
 }
 
 // Páginas institucionais, cupons e apostas não entram no Radar.
-const RE_JUNK = /\b(cupo(?:m|ns)|desconto exclusivo|apostas?|bets?|cassino|odds|palpites?|bônus de boas-vindas|patrocinad\w*|publieditorial)\b/i;
+const RE_JUNK =
+  /\b(cupo(?:m|ns)|desconto exclusivo|apostas?|bets?|cassino|odds|palpites?|bônus de boas-vindas|patrocinad\w*|publieditorial|estatísticas e resultado|vs\.? tbd|campeonatos finalizados|notícias e coberturas|ao vivo e online|onde assistir)\b/i;
 
 export function isJunk(title: string) {
   return title.split(/\s+/).length < 3 || RE_JUNK.test(title);
@@ -161,9 +162,11 @@ export function parseFeed(xml: string, source: Source, opts: { googleNews?: bool
 
   const push = (raw: Record<string, unknown>, link: string, html: string, date: string, cats: string[]) => {
     let title = stripHtml(textOf(raw.title));
-    // Google Notícias acrescenta " - Nome do Site" no fim do título.
-    if (opts.googleNews) title = title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/, "");
+    // Google Notícias acrescenta " - Nome do Site" (às vezes "| SITE - slogan") no fim do título.
+    if (opts.googleNews) title = title.replace(/\s*\|[^|]*$/, "").replace(/\s+[-–]\s+[^-–]{2,40}$/, "");
     if (!title || !link || isJunk(title)) return;
+    // Pelo Google Notícias também vêm páginas de time/campeonato com título curto: só manchetes de verdade.
+    if (opts.googleNews && title.split(/\s+/).length < 5) return;
     let excerpt = shortExcerpt(html);
     if (opts.googleNews || excerpt.toLowerCase().startsWith(title.toLowerCase().slice(0, 30))) excerpt = "";
     if (source.gamesOnly && !isAboutGames(title, excerpt, cats)) return;
