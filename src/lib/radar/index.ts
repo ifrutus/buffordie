@@ -32,7 +32,7 @@ const resolveCached = unstable_cache(
     if (!r) throw new Error("não resolvido");
     return r;
   },
-  ["radar-gnews-resolve-v2"],
+  ["radar-gnews-resolve-v3"],
   { revalidate: 7 * 24 * 3600 },
 );
 
@@ -43,7 +43,7 @@ const ogImageCached = unstable_cache(
     if (!img) throw new Error("sem foto");
     return img;
   },
-  ["radar-og-image-v1"],
+  ["radar-og-image-v2"],
   {
     revalidate: 7 * 24 * 3600,
   },

@@ -248,8 +248,11 @@ const BROWSER_UA =
 
 export const isGoogleNewsLink = (url: string) => /^https:\/\/news\.google\.com\/(rss\/)?articles\//.test(url);
 
-/** Lê só o <head> da página (para pegar og:image sem baixar a página inteira). */
-async function readHead(res: Response, limit = 400_000) {
+/**
+ * Lê a página só até achar a foto de compartilhamento (og:image) — sem baixar tudo.
+ * Sites em Next.js colocam essas tags no meio do <body>, então não dá para parar no </head>.
+ */
+async function readUntilOgImage(res: Response, limit = 1_500_000) {
   if (!res.body) return (await res.text()).slice(0, limit);
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -258,7 +261,12 @@ async function readHead(res: Response, limit = 400_000) {
     const { done, value } = await reader.read();
     if (done) break;
     html += decoder.decode(value, { stream: true });
-    if (/<\/head>/i.test(html)) break;
+    if (/(og:image|twitter:image)["'][^>]*content=|content=["'][^"']+["'][^>]*(og:image|twitter:image)/i.test(html)) {
+      // garante que a tag inteira já chegou
+      const more = await reader.read().catch(() => ({ done: true, value: undefined }));
+      if (!more.done && more.value) html += decoder.decode(more.value, { stream: true });
+      break;
+    }
   }
   reader.cancel().catch(() => {});
   return html;
@@ -287,7 +295,7 @@ export async function fetchOgImage(url: string, timeoutMs = 6000): Promise<strin
       cache: "no-store",
       redirect: "follow",
     });
-    return res.ok ? (findOgImage(await readHead(res), res.url || url) ?? null) : null;
+    return res.ok ? (findOgImage(await readUntilOgImage(res), res.url || url) ?? null) : null;
   } catch {
     return null;
   }
@@ -335,7 +343,7 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
     let image: string | undefined;
     try {
       const art = await fetch(url, { headers, signal: signal(), cache: "no-store", redirect: "follow" });
-      if (art.ok) image = findOgImage(await readHead(art), art.url || url);
+      if (art.ok) image = findOgImage(await readUntilOgImage(art), art.url || url);
     } catch {}
     return { url, image };
   } catch (e) {
