@@ -1,11 +1,12 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- avatares externos */
+ 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { tables, type Target } from "@/lib/target";
+import { Avatar } from "./avatar";
 import { useUser } from "./user-menu";
 
 type Comment = {
@@ -131,16 +132,15 @@ export function Comments({ target }: { target: Target }) {
           const name = c.author?.display_name || c.author?.username || "gamer";
           return (
             <li key={c.id} className="flex gap-3">
-              {c.author?.avatar_url ? (
-                <img src={c.author.avatar_url} alt="" className="size-9 shrink-0 rounded-full" referrerPolicy="no-referrer" />
-              ) : (
-                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-volt/30 font-display text-sm font-bold text-white">
-                  {name[0]?.toUpperCase()}
-                </span>
-              )}
+              <Link href={c.author ? `/u/${c.author.username}` : "#"} className="shrink-0">
+                <Avatar url={c.author?.avatar_url} name={name} size={36} />
+              </Link>
               <div className="min-w-0">
                 <p className="text-sm">
-                  <span className="font-semibold text-white">{name}</span>{" "}
+                  <Link href={c.author ? `/u/${c.author.username}` : "#"} className="font-semibold text-white hover:text-acid">
+                    {name}
+                  </Link>{" "}
+                  {c.author && <span className="text-zinc-500">@{c.author.username}</span>}{" "}
                   <span className="text-zinc-500">· {ago(c.created_at)}</span>
                   {user?.id === c.author_id && (
                     <button onClick={() => remove(c.id)} className="ml-3 text-xs text-zinc-500 hover:text-blood">

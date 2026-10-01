@@ -1,10 +1,10 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- avatar vindo do Google/Discord/Twitch */
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { Avatar } from "./avatar";
 
 export function useUser() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -17,23 +17,25 @@ export function useUser() {
   return user; // undefined = carregando
 }
 
-function useIsStaff(userId: string | undefined) {
-  const [staff, setStaff] = useState<{ id: string; ok: boolean } | null>(null);
+type MiniProfile = { id: string; username: string; display_name: string | null; avatar_url: string | null; role: string };
+
+function useProfile(userId: string | undefined) {
+  const [profile, setProfile] = useState<MiniProfile | null>(null);
   useEffect(() => {
     if (!userId) return;
     supabaseBrowser()
       .from("profiles")
-      .select("role")
+      .select("id, username, display_name, avatar_url, role")
       .eq("id", userId)
       .maybeSingle()
-      .then(({ data }) => setStaff({ id: userId, ok: ["author", "editor", "admin"].includes(data?.role ?? "") }));
+      .then(({ data }) => setProfile(data));
   }, [userId]);
-  return !!userId && staff?.id === userId && staff.ok;
+  return profile?.id === userId ? profile : null;
 }
 
 export function UserMenu() {
   const user = useUser();
-  const isStaff = useIsStaff(user?.id);
+  const profile = useProfile(user?.id);
 
   if (user === undefined) return <span className="h-9 w-20 animate-pulse rounded-md bg-panel" aria-hidden />;
 
@@ -45,28 +47,24 @@ export function UserMenu() {
     );
 
   const meta = user.user_metadata ?? {};
-  const name: string = meta.full_name ?? meta.name ?? meta.user_name ?? user.email?.split("@")[0] ?? "gamer";
-  const avatar: string | undefined = meta.avatar_url;
+  const name: string = profile?.display_name || profile?.username || meta.full_name || meta.name || user.email?.split("@")[0] || "gamer";
+  const avatar: string | undefined = profile?.avatar_url ?? meta.avatar_url;
+  const isStaff = ["author", "editor", "admin"].includes(profile?.role ?? "");
+  const item = "block rounded-md px-3 py-2 text-sm text-zinc-300 hover:bg-ink hover:text-white";
 
   return (
     <details className="relative">
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-line px-2 py-1.5 text-sm text-white hover:border-zinc-600">
-        {avatar ? (
-          <img src={avatar} alt="" className="size-6 rounded-full" referrerPolicy="no-referrer" />
-        ) : (
-          <span className="grid size-6 place-items-center rounded-full bg-volt text-xs font-bold">{name[0]?.toUpperCase()}</span>
-        )}
+        <Avatar url={avatar} name={name} size={24} />
         <span className="hidden max-w-28 truncate sm:inline">{name}</span>
       </summary>
-      <div className="absolute right-0 mt-2 w-48 rounded-lg border border-line bg-panel p-1 shadow-xl">
-        <p className="truncate px-3 py-2 text-xs text-zinc-500">{user.email}</p>
-        {isStaff && (
-          <Link href="/redacao" className="block rounded-md px-3 py-2 text-sm text-zinc-300 hover:bg-ink hover:text-white">
-            ✍️ Redação
-          </Link>
-        )}
+      <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-line bg-panel p-1 shadow-xl">
+        <p className="truncate px-3 py-2 text-xs text-zinc-500">{profile ? `@${profile.username}` : user.email}</p>
+        <Link href="/perfil" className={item}>👤 Meu perfil</Link>
+        {profile && <Link href={`/u/${profile.username}`} className={item}>🌐 Perfil público</Link>}
+        {isStaff && <Link href="/redacao" className={item}>✍️ Redação</Link>}
         <form action="/auth/sair" method="post">
-          <button className="w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 hover:bg-ink hover:text-white">Sair</button>
+          <button className={`${item} w-full text-left`}>Sair</button>
         </form>
       </div>
     </details>
