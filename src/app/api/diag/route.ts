@@ -1,5 +1,5 @@
 // TEMPORÁRIO: diagnóstico da resolução do Google Notícias no servidor da Vercel.
-import { googleNewsFeed, parseFeed } from "@/lib/radar/core";
+import { googleNewsFeed, parseFeed, resolveGoogleNewsArticle } from "@/lib/radar/core";
 
 export const dynamic = "force-dynamic";
 
@@ -16,5 +16,13 @@ export async function GET() {
   const page = await fetch(`https://news.google.com/articles/${id}`, { headers: H, cache: "no-store" });
   const html = await page.text();
   out.page = { status: page.status, url: page.url, len: html.length, sg: /data-n-a-sg/.test(html), consent: /consent\.google/.test(page.url + html.slice(0, 3000)), head: html.slice(0, 200) };
+  const items = parseFeed(xml, { id: "d", name: "D", home: "", feeds: [] }, { googleNews: true }).slice(0, 4);
+  out.resolve = await Promise.all(
+    items.map(async (it) => {
+      const t0 = Date.now();
+      const r = await resolveGoogleNewsArticle(it.url, 15000);
+      return { ms: Date.now() - t0, url: r?.url, image: r?.image };
+    }),
+  );
   return Response.json(out);
 }
