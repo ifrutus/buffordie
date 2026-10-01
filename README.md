@@ -68,6 +68,7 @@ src/
 - [x] Radar com 10 fontes brasileiras
 - [ ] Ativar Google, Discord e Twitch no Supabase (criar os apps de login)
 - [ ] E-mail próprio (SMTP) para o link de acesso chegar a qualquer pessoa
-- [ ] Deploy na Vercel + domínio buffordie.com.br
+- [x] Deploy na Vercel (publica a cada push no main)
+- [ ] Domínio buffordie.com.br na Vercel
 - [ ] Painel de redação para publicar matérias próprias
 - [ ] SEO: sitemap, RSS próprio, imagens de compartilhamento
