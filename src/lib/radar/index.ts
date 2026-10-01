@@ -53,7 +53,7 @@ const ogImageCached = unstable_cache(
  * Completa as notícias: link real + foto das que vêm pelo Google Notícias e foto oficial das que vêm sem imagem.
  * Roda em paralelo dentro de um prazo; o que não der tempo fica para a próxima rodada (o resto já está em cache).
  */
-async function enrich(items: RadarItem[], limit = 90, budgetMs = 20_000): Promise<RadarItem[]> {
+async function enrich(items: RadarItem[], limit = 110, budgetMs = 25_000): Promise<RadarItem[]> {
   const pending = items.filter((i) => isGoogleNewsLink(i.url) || !i.image).slice(0, limit);
   const resolved = new Map<string, { url: string; image?: string }>();
   const deadline = new Promise<void>((r) => setTimeout(r, budgetMs));
@@ -69,20 +69,34 @@ async function enrich(items: RadarItem[], limit = 90, budgetMs = 20_000): Promis
       }
     }
   };
-  await Promise.race([Promise.all(Array.from({ length: 8 }, worker)), deadline]);
+  await Promise.race([Promise.all(Array.from({ length: 5 }, worker)), deadline]);
   return items.map((i) => {
     const r = resolved.get(i.id);
     return r ? { ...i, url: r.url, image: i.image ?? r.image } : i;
   });
 }
 
-/** Todas as notícias das fontes, já classificadas e ordenadas. Nunca lança erro. */
-export const getRadar = cache(async (): Promise<RadarItem[]> => {
+async function buildRadar(): Promise<RadarItem[]> {
   const results = await Promise.all(sources.map((s) => fetchSource(s, nextFetcher)));
   for (const r of results) if (r.error) console.warn(`[radar] ${r.source.name}: ${r.error}`);
   // Limita por fonte para nenhuma dominar o feed.
   const merged = mergeItems(results.map((r) => r.items.slice(0, 25)));
   return enrich(merged);
+}
+
+/**
+ * O Radar inteiro é montado uma vez a cada 15 min e compartilhado por todas as páginas
+ * (assim o Google Notícias não recebe dezenas de pedidos simultâneos).
+ */
+const radarShared = unstable_cache(buildRadar, ["radar-all-v1"], { revalidate: RADAR_REVALIDATE, tags: ["radar"] });
+
+/** Todas as notícias das fontes, já classificadas e ordenadas. Nunca lança erro. */
+export const getRadar = cache(async (): Promise<RadarItem[]> => {
+  try {
+    return await radarShared();
+  } catch {
+    return buildRadar();
+  }
 });
 
 export async function getRadarItem(id: string) {
