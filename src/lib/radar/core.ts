@@ -139,6 +139,19 @@ const parser = new XMLParser({
   trimValues: true,
 });
 
+/** Troca miniaturas (Blogger "s72-c", WordPress "-150x150") pela versão grande da mesma imagem. */
+export function upgradeImage(url: string | undefined): string | undefined {
+  if (!url) return url;
+  let u = decodeEntities(url.trim());
+  if (u.startsWith("//")) u = "https:" + u;
+  if (/googleusercontent\.com|blogger\.com|bp\.blogspot\.com/.test(u)) {
+    u = u
+      .replace(/\/(?:s|w)\d+(?:-h\d+)?(?:-[a-z0-9-]+)?\//i, "/s1280/")
+      .replace(/=(?:s|w)\d+(?:-h\d+)?(?:-[a-z0-9-]+)?$/i, "=s1280");
+  }
+  return u.replace(/-\d{2,4}x\d{2,4}(\.(?:jpe?g|png|webp|gif))(\?.*)?$/i, "$1$2");
+}
+
 function pickImage(it: Record<string, unknown>, html: string): string | undefined {
   const media = [
     ...arr(it["media:content"] as Record<string, string>[]),
@@ -182,7 +195,7 @@ export function parseFeed(xml: string, source: Source, opts: { googleNews?: bool
       title,
       url: link,
       excerpt,
-      image: pickImage(raw, html),
+      image: upgradeImage(pickImage(raw, html)),
       publishedAt: Number.isNaN(+d) ? new Date().toISOString() : d.toISOString(),
       sourceId: source.id,
       sourceName: source.name,
@@ -221,6 +234,87 @@ const looksLikeFeed = (body: string) => /<(rss|feed|rdf:RDF)\b/i.test(body.slice
 
 export function googleNewsFeed(site: string) {
   return `https://news.google.com/rss/search?q=${encodeURIComponent(`site:${site} when:7d`)}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
+}
+
+// ---------- Google Notícias → link real + foto oficial ----------
+
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+
+export const isGoogleNewsLink = (url: string) => /^https:\/\/news\.google\.com\/(rss\/)?articles\//.test(url);
+
+/** Lê só o <head> da página (para pegar og:image sem baixar a página inteira). */
+async function readHead(res: Response, limit = 400_000) {
+  if (!res.body) return (await res.text()).slice(0, limit);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let html = "";
+  while (html.length < limit) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    html += decoder.decode(value, { stream: true });
+    if (/<\/head>/i.test(html)) break;
+  }
+  reader.cancel().catch(() => {});
+  return html;
+}
+
+export function findOgImage(html: string, base: string): string | undefined {
+  for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
+    if (!/(property|name)=["'](og:image(:secure_url)?|twitter:image)["']/i.test(tag)) continue;
+    const content = tag.match(/content=["']([^"']+)["']/i)?.[1];
+    if (content) {
+      try {
+        return upgradeImage(new URL(decodeEntities(content), base).toString());
+      } catch {}
+    }
+  }
+}
+
+export type ResolvedArticle = { url: string; image?: string };
+
+/**
+ * Descobre o link original de uma notícia do Google Notícias (mesmo método usado por leitores de RSS)
+ * e a foto oficial da matéria (og:image). Devolve null se não conseguir.
+ */
+export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 6000): Promise<ResolvedArticle | null> {
+  const headers = { "user-agent": BROWSER_UA, "accept-language": "pt-BR,pt;q=0.9" };
+  const signal = () => AbortSignal.timeout(timeoutMs);
+  try {
+    const id = new URL(gnewsUrl).pathname.split("/").pop();
+    if (!id) return null;
+    const page = await fetch(`https://news.google.com/articles/${id}`, { headers, signal: signal(), cache: "no-store" });
+    const html = await page.text();
+    const sg = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
+    const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
+    if (!sg || !ts) return null;
+    const payload = [
+      "garturlreq",
+      [["X", "X", ["X", "X"], null, null, 1, 1, "US:en", null, 1, null, null, null, null, null, 0, 1], "X", "X", 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0],
+      id,
+      Number(ts),
+      sg,
+    ];
+    const res = await fetch("https://news.google.com/_/DotsSplashUi/data/batchexecute", {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: "f.req=" + encodeURIComponent(JSON.stringify([[["Fbv4je", JSON.stringify(payload), null, "generic"]]])),
+      signal: signal(),
+      cache: "no-store",
+    });
+    const text = await res.text();
+    const m = text.match(/\\"garturlres\\",\\"(https?:[^"\\]+)/) ?? text.match(/garturlres[^h]+(https?:\/\/[^"\\]+)/);
+    const url = m?.[1]?.replace(/\\u003d/g, "=").replace(/\\u0026/g, "&");
+    if (!url || isGoogleNewsLink(url)) return null;
+    let image: string | undefined;
+    try {
+      const art = await fetch(url, { headers, signal: signal(), cache: "no-store", redirect: "follow" });
+      if (art.ok) image = findOgImage(await readHead(art), art.url || url);
+    } catch {}
+    return { url, image };
+  } catch {
+    return null;
+  }
 }
 
 export type SourceResult = { source: Source; feedUrl?: string; items: RadarItem[]; error?: string };

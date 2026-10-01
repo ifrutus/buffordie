@@ -17,8 +17,23 @@ export function useUser() {
   return user; // undefined = carregando
 }
 
+function useIsStaff(userId: string | undefined) {
+  const [staff, setStaff] = useState<{ id: string; ok: boolean } | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    supabaseBrowser()
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => setStaff({ id: userId, ok: ["author", "editor", "admin"].includes(data?.role ?? "") }));
+  }, [userId]);
+  return !!userId && staff?.id === userId && staff.ok;
+}
+
 export function UserMenu() {
   const user = useUser();
+  const isStaff = useIsStaff(user?.id);
 
   if (user === undefined) return <span className="h-9 w-20 animate-pulse rounded-md bg-panel" aria-hidden />;
 
@@ -45,6 +60,11 @@ export function UserMenu() {
       </summary>
       <div className="absolute right-0 mt-2 w-48 rounded-lg border border-line bg-panel p-1 shadow-xl">
         <p className="truncate px-3 py-2 text-xs text-zinc-500">{user.email}</p>
+        {isStaff && (
+          <Link href="/redacao" className="block rounded-md px-3 py-2 text-sm text-zinc-300 hover:bg-ink hover:text-white">
+            ✍️ Redação
+          </Link>
+        )}
         <form action="/auth/sair" method="post">
           <button className="w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 hover:bg-ink hover:text-white">Sair</button>
         </form>

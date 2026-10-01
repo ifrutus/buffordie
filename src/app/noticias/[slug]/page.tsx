@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Comments } from "@/components/comments";
 import { LikeButton } from "@/components/like-button";
+import { RichText } from "@/components/rich-text";
 import { Cover, PostCard, RadarRow, SectionBadge } from "@/components/post-card";
 import { formatDate, getPost, getPosts } from "@/lib/posts";
 import { getRadarBySection } from "@/lib/radar";
@@ -63,7 +64,7 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
         )}
 
         <div className="mt-8 space-y-5 text-lg leading-relaxed text-zinc-300">
-          {post.content.split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}
+          <RichText text={post.content} />
         </div>
 
         {post.score != null && (
@@ -81,11 +82,11 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
         )}
 
         <div className="mt-10 flex flex-wrap items-center gap-3 border-y border-line py-6">
-          <LikeButton postId={post.id} initial={post.likes} />
+          <LikeButton target={{ kind: "post", id: post.id }} initial={post.likes} />
           <span className="text-sm text-zinc-500">Curtiu? Compartilhe com o squad.</span>
         </div>
 
-        <Comments postId={post.id} />
+        <Comments target={{ kind: "post", id: post.id }} />
 
         {related.filter((p) => p.id !== post.id).length > 0 && (
           <section className="mt-16">

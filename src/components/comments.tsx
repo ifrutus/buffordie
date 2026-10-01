@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { tables, type Target } from "@/lib/target";
 import { useUser } from "./user-menu";
 
 type Comment = {
@@ -23,18 +24,20 @@ function ago(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
-async function fetchComments(postId: string) {
+async function fetchComments(target: Target) {
+  const t = tables(target);
   const { data, error } = await supabaseBrowser()
-    .from("comments")
+    .from(t.comments)
     .select("id, body, created_at, author_id, author:profiles(username, display_name, avatar_url)")
-    .eq("post_id", postId)
+    .eq(t.key, target.id)
     .eq("hidden", false)
     .order("created_at", { ascending: false })
     .limit(100);
   return { data: ((data as unknown as Comment[]) ?? []) as Comment[], error };
 }
 
-export function Comments({ postId }: { postId: string }) {
+export function Comments({ target }: { target: Target }) {
+  const { kind, id } = target;
   const user = useUser();
   const pathname = usePathname();
   const [items, setItems] = useState<Comment[] | null>(null);
@@ -44,16 +47,16 @@ export function Comments({ postId }: { postId: string }) {
 
   const load = useCallback(
     () =>
-      fetchComments(postId).then(({ data, error }) => {
+      fetchComments({ kind, id }).then(({ data, error }) => {
         if (error) setError("Não foi possível carregar os comentários.");
         setItems(data);
       }),
-    [postId],
+    [kind, id],
   );
 
   useEffect(() => {
     let alive = true;
-    fetchComments(postId).then(({ data, error }) => {
+    fetchComments({ kind, id }).then(({ data, error }) => {
       if (!alive) return;
       if (error) setError("Não foi possível carregar os comentários.");
       setItems(data);
@@ -61,7 +64,7 @@ export function Comments({ postId }: { postId: string }) {
     return () => {
       alive = false;
     };
-  }, [postId]);
+  }, [kind, id]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -69,16 +72,16 @@ export function Comments({ postId }: { postId: string }) {
     if (!body || !user) return;
     setSending(true);
     setError(null);
-    const { error } = await supabaseBrowser().from("comments").insert({ post_id: postId, author_id: user.id, body });
+    const { error } = await supabaseBrowser().from(tables(target).comments).insert({ [tables(target).key]: id, author_id: user.id, body });
     setSending(false);
     if (error) return setError("Não foi possível enviar. Tente de novo.");
     setText("");
     load();
   }
 
-  async function remove(id: string) {
-    const { error } = await supabaseBrowser().from("comments").delete().eq("id", id);
-    if (!error) setItems((prev) => prev?.filter((c) => c.id !== id) ?? null);
+  async function remove(commentId: string) {
+    const { error } = await supabaseBrowser().from(tables(target).comments).delete().eq("id", commentId);
+    if (!error) setItems((prev) => prev?.filter((c) => c.id !== commentId) ?? null);
   }
 
   return (

@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { Cover, PostCard, RadarCard, RadarRow, SectionBadge } from "@/components/post-card";
 import { getPosts, formatDate } from "@/lib/posts";
+import { getHotDiscussions } from "@/lib/community";
 import { getRadar } from "@/lib/radar";
+import { trendingTopics } from "@/lib/radar/trending";
 import { sections } from "@/lib/sections";
 
 export const revalidate = 900; // 15 min, igual ao cache do Radar
 
 export default async function Home() {
-  const [posts, radar] = await Promise.all([getPosts({ limit: 6 }), getRadar()]);
-  const [featured, ...morePosts] = posts;
+  const [posts, radar] = await Promise.all([getPosts({ limit: 50 }), getRadar()]);
+  const [featured, ...rest] = posts;
+  const morePosts = rest.slice(0, 6);
   const latest = radar.slice(0, 8);
+  const topics = trendingTopics(radar).slice(0, 4);
+  const hot = await getHotDiscussions(posts, radar);
 
   return (
     <div className="mx-auto max-w-7xl px-4">
@@ -61,6 +66,54 @@ export default async function Home() {
           )}
         </aside>
       </section>
+
+      {/* Assuntos do momento + comunidade */}
+      {(topics.length > 0 || hot.length > 0) && (
+        <section className="mt-14 grid gap-6 lg:grid-cols-3">
+          {topics.length > 0 && (
+            <div className="rounded-2xl border border-line bg-panel p-6 lg:col-span-2">
+              <h2 className="font-display text-sm font-bold uppercase tracking-widest text-acid">🔥 Assuntos do momento</h2>
+              <p className="mt-1 text-sm text-zinc-500">O que várias fontes estão cobrindo agora.</p>
+              <ol className="mt-5 grid gap-5 sm:grid-cols-2">
+                {topics.map((t) => (
+                  <li key={t.key}>
+                    <Link href={`/radar/${t.items[0].id}`} className="group block">
+                      <p className="font-medium leading-snug text-white group-hover:text-acid">{t.title}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {t.sources.length} fontes · {t.sources.slice(0, 3).join(", ")}
+                        {t.sources.length > 3 ? "…" : ""}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          <div className={`rounded-2xl border border-line bg-panel p-6 ${topics.length ? "" : "lg:col-span-3"}`}>
+            <h2 className="font-display text-sm font-bold uppercase tracking-widest text-acid">💬 Mais comentadas</h2>
+            <p className="mt-1 text-sm text-zinc-500">Onde a comunidade está falando esta semana.</p>
+            {hot.length ? (
+              <ol className="mt-5 space-y-4">
+                {hot.map((h) => (
+                  <li key={h.kind + h.id}>
+                    <Link href={h.href} className="group block">
+                      <p className="font-medium leading-snug text-white group-hover:text-acid">{h.title}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {h.source} · 💬 {h.comments} · ♥ {h.likes}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="mt-5 text-sm text-zinc-400">
+                Ninguém comentou ainda esta semana.{" "}
+                <Link href="/radar" className="text-acid hover:underline">Puxe o primeiro papo →</Link>
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Matérias próprias */}
       {morePosts.length > 0 && (

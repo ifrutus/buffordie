@@ -4,9 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { tables, type Target } from "@/lib/target";
 import { useUser } from "./user-menu";
 
-export function LikeButton({ postId, initial }: { postId: string; initial: number }) {
+export function LikeButton({ target, initial }: { target: Target; initial: number }) {
+  const t = tables(target);
+  const targetId = target.id;
   const user = useUser();
   const pathname = usePathname();
   const [likedState, setLikedState] = useState<{ userId: string; liked: boolean } | null>(null);
@@ -17,13 +20,13 @@ export function LikeButton({ postId, initial }: { postId: string; initial: numbe
 
   useEffect(() => {
     const sb = supabaseBrowser();
-    sb.from("likes").select("*", { count: "exact", head: true }).eq("post_id", postId)
+    sb.from(t.likes).select("*", { count: "exact", head: true }).eq(t.key, targetId)
       .then(({ count: c }) => c != null && setCount(c));
     if (!user) return;
     const userId = user.id;
-    sb.from("likes").select("post_id").eq("post_id", postId).eq("user_id", userId).maybeSingle()
+    sb.from(t.likes).select("user_id").eq(t.key, targetId).eq("user_id", userId).maybeSingle()
       .then(({ data }) => setLikedState({ userId, liked: !!data }));
-  }, [postId, user]);
+  }, [targetId, user, t.likes, t.key]);
 
   if (user === null)
     return (
@@ -43,8 +46,8 @@ export function LikeButton({ postId, initial }: { postId: string; initial: numbe
     setLiked(next);
     setCount((c) => c + (next ? 1 : -1));
     const { error } = next
-      ? await sb.from("likes").insert({ post_id: postId, user_id: user.id })
-      : await sb.from("likes").delete().eq("post_id", postId).eq("user_id", user.id);
+      ? await sb.from(t.likes).insert({ [t.key]: targetId, user_id: user.id })
+      : await sb.from(t.likes).delete().eq(t.key, targetId).eq("user_id", user.id);
     if (error) {
       setLiked(!next);
       setCount((c) => c + (next ? -1 : 1));
