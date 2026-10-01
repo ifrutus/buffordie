@@ -5,6 +5,7 @@ import { getRadar, timeAgo } from "@/lib/radar";
 import { trendingTopics } from "@/lib/radar/trending";
 import { sections } from "@/lib/sections";
 import { supabaseServer } from "@/lib/supabase/server";
+import { MediaUploader } from "@/components/media-uploader";
 import { createPost } from "./actions";
 
 export const metadata: Metadata = { title: "Redação", robots: { index: false, follow: false } };
@@ -126,19 +127,27 @@ export default async function RedacaoPage({ searchParams }: PageProps<"/redacao"
             </label>
           </div>
           <label className="block space-y-1">
-            <span className="text-sm text-zinc-300">Imagem de capa (link https://)</span>
-            <input name="cover_url" type="url" placeholder="Use imagens próprias ou de press kit oficial" className={input} />
+            <span className="text-sm text-zinc-300">Imagem de capa</span>
+            <input
+              id="cover_url"
+              name="cover_url"
+              type="url"
+              placeholder="Envie abaixo e clique em “Usar como capa”, ou cole um link https://"
+              className={input}
+            />
           </label>
+          <MediaUploader />
           <label className="block space-y-1">
             <span className="text-sm text-zinc-300">Texto</span>
             <textarea
+              id="content"
               name="content"
               required
               minLength={200}
               rows={16}
               defaultValue={fontes}
               className={`${input} font-sans leading-relaxed`}
-              placeholder={"Escreva a matéria. Deixe uma linha em branco entre parágrafos.\nLinks: [texto](https://...)  ·  Negrito: **texto**"}
+              placeholder={"Escreva a matéria. Deixe uma linha em branco entre parágrafos.\nLinks: [texto](https://...) · Negrito: **texto** · Vídeo do YouTube: cole o link sozinho numa linha"}
             />
           </label>
           <div className="flex flex-wrap items-center gap-3">
