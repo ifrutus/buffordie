@@ -85,7 +85,7 @@ function arr<T>(v: T | T[] | undefined): T[] {
 const has = (text: string, words: RegExp) => words.test(text);
 
 const RE_COMPETITIVO =
-  /\b(e-?sports?|campeonat\w*|torneio\w*|cblol|lta|cbcs|major|vct|valorant champions|champions tour|worlds|msi|iem|blast|pgl|esl|lbff|ffws|free fire world|copa|playoffs?|final(?:ista)?s?|semifina\w*|line-?up|roster|elenco|contrata\w*|furia|loud|pain gaming|mibr|imperial|red canids|vivo keyd|fluxo|liquid|navi|faze|vitality|g2|t1|lol|counter-?strike|cs2|r6|rainbow six|dota)\b/i;
+  /\b(e-?sports?|campeonat\w*|torneio\w*|cblol|lta|cbcs|major|vct|valorant champions|champions tour|worlds|msi|iem|blast|pgl|esl|lbff|ffws|free fire world|copa|playoffs?|final(?:ista)?s?|semifina\w*|roster|elenco|contrata\w*|furia|loud|pain gaming|mibr|imperial|red canids|vivo keyd|fluxo|liquid|navi|faze|vitality|g2|t1|lol|counter-?strike|cs2|r6|rainbow six|dota)\b/i;
 const RE_ATUALIZACOES =
   /\b(atualiza\w*|update|patch|hotfix|notas de patch|temporada|season|nova season|passe de batalha|battle pass|dlc|expans\w*|nerf\w*|buff\w*|balanceament\w*|novo mapa|novos? agentes?|novos? personage\w*|evento|versão \d|v\d+\.\d+)\b/i;
 const RE_REVIEWS = /\b(review|análise|analisamos|vale a pena|nota final|testamos|impressões)\b/i;
@@ -111,8 +111,14 @@ export function classify(title: string, excerpt: string, categories: string[], f
 const RE_JUNK =
   /\b(cupo(?:m|ns)|desconto exclusivo|apostas?|bets?|cassino|odds|palpites?|bônus de boas-vindas|patrocinad\w*|publieditorial|estatísticas e resultado|vs\.? tbd|campeonatos finalizados|notícias e coberturas|ao vivo e online|onde assistir)\b/i;
 
+// Páginas automáticas de partida/evento ("TIME A vs TIME B", "CCT Series #6").
+const RE_MATCH_PAGE = /\bseries #\d+\b|^\S.{0,60}\svs\.?\s.{1,60}$/i;
+
 export function isJunk(title: string) {
-  return title.split(/\s+/).length < 3 || RE_JUNK.test(title);
+  const words = title.split(/\s+/).length;
+  if (words < 3 || RE_JUNK.test(title)) return true;
+  // "LOUD vs FURIA: quem leva a final?" é manchete; "LOUD vs FURIA - Liga X" é página de partida.
+  return RE_MATCH_PAGE.test(title) && !title.includes(":") && words < 9;
 }
 
 // Títulos com "game" que não são de games.
