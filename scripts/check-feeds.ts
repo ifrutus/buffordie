@@ -16,7 +16,7 @@ for (const r of results) {
   lines.push(`| ${r.source.name} | ${ok ? "✅" : "❌"} | ${r.feedUrl ?? r.error ?? "-"} | ${r.items.length} | ${sec} |`);
   const msg = ok
     ? `${r.source.name} OK via ${r.feedUrl} — ${r.items.length} itens (${sec}) — ex.: ${r.items.slice(0, 2).map((i) => `[${i.section}] ${i.title}`).join(" / ")}`
-    : `${r.source.name} FALHOU — ${r.error ?? "feed sem itens de games"}`;
+    : `${r.source.name} FALHOU — ${r.error ?? `feed ${r.feedUrl} sem itens aproveitáveis`}`;
   console.log(`::${ok ? "notice" : "warning"} title=radar-${r.source.id}::${msg.replace(/\n/g, " ")}`);
 }
 console.log(lines.join("\n"));

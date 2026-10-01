@@ -11,11 +11,13 @@ export const sources: Source[] = [
     googleNewsSite: "br.ign.com",
   },
   {
-    id: "theenemy",
-    name: "The Enemy",
-    home: "https://www.theenemy.com.br/",
-    feeds: ["https://www.theenemy.com.br/rss", "https://www.theenemy.com.br/feed", "https://www.theenemy.com.br/rss.xml"],
-    googleNewsSite: "theenemy.com.br",
+    // The Enemy foi encerrado em 2025; a cobertura de games passou para o Omelete (Omelete Z).
+    id: "omelete",
+    name: "Omelete",
+    home: "https://www.omelete.com.br/games",
+    feeds: ["https://www.omelete.com.br/rss/games", "https://www.omelete.com.br/games/rss", "https://www.omelete.com.br/rss"],
+    gamesOnly: true,
+    googleNewsSite: "omelete.com.br",
   },
   {
     id: "voxel",
