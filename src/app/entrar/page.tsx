@@ -29,6 +29,15 @@ const ERRORS: Record<string, string> = {
   callback: "O link expirou ou já foi usado. Tente de novo.",
 };
 
+/** Traduz as mensagens do Supabase Auth que podem aparecer para o leitor. */
+function translate(msg: string) {
+  const wait = msg.match(/after (\d+) seconds?/i);
+  if (wait) return `Já enviamos um link há pouco. Confira seu e-mail (e a caixa de spam) ou aguarde ${wait[1]} segundos para pedir outro.`;
+  if (/rate limit/i.test(msg)) return "Muitos pedidos de link em pouco tempo. Tente de novo em alguns minutos.";
+  if (/not authorized|signups not allowed/i.test(msg)) return "Não foi possível enviar o link para esse e-mail agora.";
+  return `Não foi possível entrar: ${msg}`;
+}
+
 export default async function SignInPage({ searchParams }: PageProps<"/entrar">) {
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -44,12 +53,12 @@ export default async function SignInPage({ searchParams }: PageProps<"/entrar">)
 
       {erro && (
         <p className="mt-6 rounded-md border border-blood/50 bg-blood/10 px-4 py-3 text-sm text-red-200">
-          {ERRORS[erro] ?? `Não foi possível entrar: ${erro}`}
+          {ERRORS[erro] ?? translate(erro)}
         </p>
       )}
       {enviado && (
         <p className="mt-6 rounded-md border border-acid/50 bg-acid/10 px-4 py-3 text-sm text-lime-100">
-          Pronto! Enviamos um link de acesso para o seu e-mail. Abra-o neste mesmo navegador.
+          Pronto! Enviamos um link de acesso para o seu e-mail (confira também o spam). Abra o link neste mesmo navegador.
         </p>
       )}
 
