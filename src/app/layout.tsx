@@ -8,7 +8,7 @@ import { Footer } from "@/components/footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://buffordie.com.br"),
+  metadataBase: new URL("https://www.buffordie.com.br"),
   title: {
     default: "BuffOrDie — O hub de games do Brasil",
     template: "%s | BuffOrDie",
