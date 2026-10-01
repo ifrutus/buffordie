@@ -114,8 +114,11 @@ export function isJunk(title: string) {
   return title.split(/\s+/).length < 3 || RE_JUNK.test(title);
 }
 
+// Títulos com "game" que não são de games.
+const RE_FALSE_GAME = /\b(game of thrones|squid game|hunger games|jogos vorazes|game changer|jogo (?:do|de) (?:futebol|brasileirão|campeonato brasileiro))\b/gi;
+
 export function isAboutGames(title: string, excerpt: string, categories: string[]) {
-  return RE_IS_GAME.test(`${title} ${categories.join(" ")} ${excerpt}`);
+  return RE_IS_GAME.test(`${title} ${categories.join(" ")} ${excerpt}`.replace(RE_FALSE_GAME, " "));
 }
 
 // ---------- parse ----------

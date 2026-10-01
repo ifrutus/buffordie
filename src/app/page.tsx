@@ -20,7 +20,9 @@ export default async function Home() {
             href={`/noticias/${featured.slug}`}
             className="group relative min-h-[360px] overflow-hidden rounded-2xl border border-line lg:col-span-2"
           >
-            <Cover image={featured.coverUrl} section={featured.section} className="absolute inset-0" />
+            <div className="absolute inset-0">
+              <Cover image={featured.coverUrl} section={featured.section} className="size-full" />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 space-y-3 p-6 sm:p-8">
               <div className="flex items-center gap-2">

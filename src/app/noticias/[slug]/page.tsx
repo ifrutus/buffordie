@@ -58,7 +58,9 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
           </div>
         </header>
 
-        <Cover image={post.coverUrl} section={post.section} score={post.score} className="mt-8 aspect-video rounded-2xl border border-line" />
+        {post.coverUrl && (
+          <Cover image={post.coverUrl} section={post.section} score={post.score} className="mt-8 aspect-video rounded-2xl border border-line" />
+        )}
 
         <div className="mt-8 space-y-5 text-lg leading-relaxed text-zinc-300">
           {post.content.split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}

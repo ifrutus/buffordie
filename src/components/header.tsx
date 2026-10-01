@@ -47,7 +47,7 @@ export function Header() {
         </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto border-t border-line px-4 py-2 lg:hidden" aria-label="Seções (mobile)">
-        {nav.map((n) => (
+        {[{ href: "/busca", label: "🔍 Buscar" }, ...nav].map((n) => (
           <Link key={n.href} href={n.href} className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-zinc-300">
             {n.label}
           </Link>
