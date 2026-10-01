@@ -32,7 +32,7 @@ const resolveCached = unstable_cache(
     if (!r) throw new Error("não resolvido");
     return r;
   },
-  ["radar-gnews-resolve-v3"],
+  ["radar-gnews-resolve-v4"],
   { revalidate: 7 * 24 * 3600 },
 );
 
@@ -43,7 +43,7 @@ const ogImageCached = unstable_cache(
     if (!img) throw new Error("sem foto");
     return img;
   },
-  ["radar-og-image-v2"],
+  ["radar-og-image-v3"],
   {
     revalidate: 7 * 24 * 3600,
   },
@@ -88,7 +88,7 @@ async function buildRadar(): Promise<RadarItem[]> {
  * O Radar inteiro é montado uma vez a cada 15 min e compartilhado por todas as páginas
  * (assim o Google Notícias não recebe dezenas de pedidos simultâneos).
  */
-const radarShared = unstable_cache(buildRadar, ["radar-all-v1"], { revalidate: RADAR_REVALIDATE, tags: ["radar"] });
+const radarShared = unstable_cache(buildRadar, ["radar-all-v2"], { revalidate: RADAR_REVALIDATE, tags: ["radar"] });
 
 /** Todas as notícias das fontes, já classificadas e ordenadas. Nunca lança erro. */
 export const getRadar = cache(async (): Promise<RadarItem[]> => {

@@ -292,7 +292,6 @@ export async function fetchOgImage(url: string, timeoutMs = 6000): Promise<strin
     const res = await fetch(url, {
       headers: { "user-agent": BROWSER_UA, "accept-language": "pt-BR,pt;q=0.9" },
       signal: AbortSignal.timeout(timeoutMs),
-      cache: "no-store",
       redirect: "follow",
     });
     return res.ok ? (findOgImage(await readUntilOgImage(res), res.url || url) ?? null) : null;
@@ -311,7 +310,7 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
   try {
     const id = new URL(gnewsUrl).pathname.split("/").pop();
     if (!id) return null;
-    const page = await fetch(`https://news.google.com/articles/${id}`, { headers, signal: signal(), cache: "no-store" });
+    const page = await fetch(`https://news.google.com/articles/${id}`, { headers, signal: signal() });
     const html = await page.text();
     const sg = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
     const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
@@ -331,7 +330,6 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
       headers: { ...headers, "content-type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: "f.req=" + encodeURIComponent(JSON.stringify([[["Fbv4je", JSON.stringify(payload), null, "generic"]]])),
       signal: signal(),
-      cache: "no-store",
     });
     const text = await res.text();
     const m = text.match(/\\"garturlres\\",\\"(https?:[^"\\]+)/) ?? text.match(/garturlres[^h]+(https?:\/\/[^"\\]+)/);
@@ -342,7 +340,7 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
     }
     let image: string | undefined;
     try {
-      const art = await fetch(url, { headers, signal: signal(), cache: "no-store", redirect: "follow" });
+      const art = await fetch(url, { headers, signal: signal(), redirect: "follow" });
       if (art.ok) image = findOgImage(await readUntilOgImage(art), art.url || url);
     } catch {}
     return { url, image };
