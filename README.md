@@ -33,16 +33,30 @@ As chaves públicas do Supabase já vêm como padrão em `src/lib/supabase/env.t
 
 `src/lib/radar/` lê os feeds RSS das fontes a cada 15 min, classifica cada notícia numa seção por palavras-chave e mostra **título, resumo curto e link para a matéria original** (nunca o texto completo — o conteúdo é das fontes).
 
+- Cada notícia tem uma página própria no BuffOrDie (`/radar/[id]`) com resumo, crédito, botão para a matéria original, curtidas, comentários e "outras fontes falando disso". Essas páginas são `noindex` com canonical apontando para a fonte (o Google credita o original).
+- Notícias que chegam pelo Google Notícias têm o link real e a foto oficial (og:image) descobertos e guardados por 7 dias; miniaturas são trocadas pela versão grande.
+- O Radar inteiro é montado uma vez a cada 15 min e compartilhado entre as páginas.
+- `trending.ts` agrupa notícias de fontes diferentes sobre o mesmo assunto ("Assuntos do momento" na home e pautas da redação).
+
 - Fontes em `src/lib/radar/sources.ts`: IGN Brasil, Omelete (ex-The Enemy), Voxel, TecMundo, Mais Esports, Draft5, Flow Games, GameBlast, Adrenaline, Jovem Nerd.
 - Se o feed de uma fonte muda, o leitor tenta: URLs conhecidas → descoberta na página inicial → Google Notícias filtrado pelo site.
 - Filtra páginas de cupom/apostas e, em sites generalistas, só aceita conteúdo de games.
 - O workflow **Verificar fontes do Radar** (GitHub Actions) testa todas as fontes a cada mudança e toda segunda-feira. Para rodar local: `node scripts/check-feeds.ts`.
 
+## Redação
+
+`/redacao` (só para `author`/`editor`/`admin`): pautas em alta (assuntos que várias fontes estão cobrindo) e formulário para publicar matérias próprias — com links (`[texto](https://...)`) e **negrito**. As fontes da pauta entram automaticamente no fim do texto.
+
+Para liberar alguém: a pessoa entra no site uma vez e depois, no SQL Editor do Supabase:
+
+```sql
+update profiles set role = 'editor' where id = (select id from auth.users where email = 'email@dela.com');
+```
+
 ## Banco (Supabase)
 
 - `supabase/migrations/` — SQL aplicado no projeto (tabelas, RLS, seções, matéria de boas-vindas).
-- `supabase/tests/rls_test.sql` — teste de segurança: simula usuários e confere que ninguém curte/comenta/edita em nome de outro, nem vira admin sozinho. Tudo é desfeito no final.
-- Para dar permissão de redação a alguém: `update profiles set role = 'editor' where username = '…';`
+- `supabase/tests/` — testes de segurança (RLS): simulam usuários e conferem que ninguém curte/comenta/edita em nome de outro, nem vira admin sozinho, e que visitantes não veem rascunhos. Tudo é desfeito no final.
 
 ## Estrutura
 
@@ -70,5 +84,8 @@ src/
 - [ ] E-mail próprio (SMTP) para o link de acesso chegar a qualquer pessoa
 - [x] Deploy na Vercel (publica a cada push no main)
 - [ ] Domínio buffordie.com.br na Vercel
-- [ ] Painel de redação para publicar matérias próprias
+- [x] Página própria para cada notícia do Radar, com comunidade
+- [x] Painel de redação com pautas em alta
+- [x] "Assuntos do momento" e "Mais comentadas" na home
+- [ ] Upload de imagem de capa (Supabase Storage) e edição de matérias
 - [ ] SEO: sitemap, RSS próprio, imagens de compartilhamento
