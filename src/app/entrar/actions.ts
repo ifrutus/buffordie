@@ -1,7 +1,9 @@
 "use server";
 
+import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type Provider = "google" | "discord" | "twitch";
@@ -37,10 +39,14 @@ export async function signInWithEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const next = safeNext(formData.get("next"));
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) redirect(`/entrar?erro=email&next=${encodeURIComponent(next)}`);
-  const supabase = await supabaseServer();
+  // Fluxo "implícito": o link do e-mail já traz a sessão, então funciona em qualquer navegador/aparelho
+  // (o fluxo PKCE padrão só funciona no mesmo navegador que pediu o link).
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { flowType: "implicit", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${await origin()}/auth/callback?next=${encodeURIComponent(next)}` },
+    options: { emailRedirectTo: `${await origin()}/auth/confirmar?next=${encodeURIComponent(next)}` },
   });
   if (error) redirect(`/entrar?erro=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
   redirect(`/entrar?enviado=1&next=${encodeURIComponent(next)}`);
