@@ -109,7 +109,11 @@ export function classify(title: string, excerpt: string, categories: string[], f
 
 // Páginas institucionais, cupons e apostas não entram no Radar.
 const RE_JUNK =
-  /\b(cupo(?:m|ns)|desconto exclusivo|apostas?|bets?|cassino|odds|palpites?|bônus de boas-vindas|patrocinad\w*|publieditorial|estatísticas e resultado|vs\.? tbd|campeonatos finalizados|notícias e coberturas|ao vivo e online|onde assistir)\b/i;
+  /\b(cupo(?:m|ns)|desconto exclusivo|apostas?|bets?|cassino|odds|palpites?|bônus de boas-vindas|patrocinad\w*|publieditorial|estatísticas e resultado|vs\.? tbd|campeonatos finalizados|notícias e coberturas|ao vivo e online|onde assistir|achado gamer|oferta (?:derruba|exclusiva|imperd\w+)|\d+% off|em oferta|na amazon|no mercado livre|do aliexpress|na shopee)\b/i;
+
+// Cinema e TV: só entra se também falar de jogo/plataforma.
+const RE_SCREEN = /\b(filmes?|cinemas?|live-action|estreias?|prime video|netflix|disney\+|hbo max|crunchyroll|bilheteria|trailer do filme)\b/i;
+const RE_PLATFORM = /\b(jog[oa]s?|games?|ps[45]|playstation|xbox|switch|steam|pc|gameplay|dlc)\b/i;
 
 // Páginas automáticas de partida/evento ("TIME A vs TIME B", "CCT Series #6").
 const RE_MATCH_PAGE = /\bseries #\d+\b|^\S.{0,60}\svs\.?\s.{1,60}$/i;
@@ -117,12 +121,13 @@ const RE_MATCH_PAGE = /\bseries #\d+\b|^\S.{0,60}\svs\.?\s.{1,60}$/i;
 export function isJunk(title: string) {
   const words = title.split(/\s+/).length;
   if (words < 3 || RE_JUNK.test(title)) return true;
+  if (RE_SCREEN.test(title) && !RE_PLATFORM.test(title.replace(RE_FALSE_GAME, " "))) return true;
   // "LOUD vs FURIA: quem leva a final?" é manchete; "LOUD vs FURIA - Liga X" é página de partida.
   return RE_MATCH_PAGE.test(title) && !title.includes(":") && words < 9;
 }
 
 // Títulos com "game" que não são de games.
-const RE_FALSE_GAME = /\b(game of thrones|squid game|hunger games|jogos vorazes|game changer|jogo (?:do|de) (?:futebol|brasileirão|campeonato brasileiro))\b/gi;
+const RE_FALSE_GAME = /\b(game of thrones|squid game|hunger games|jogos vorazes|game changer|jogo da imitação|jogo (?:do|de) (?:futebol|brasileirão|campeonato brasileiro))\b/gi;
 
 export function isAboutGames(title: string, excerpt: string, categories: string[]) {
   return RE_IS_GAME.test(`${title} ${categories.join(" ")} ${excerpt}`.replace(RE_FALSE_GAME, " "));
@@ -302,7 +307,10 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
     const html = await page.text();
     const sg = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
     const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
-    if (!sg || !ts) return null;
+    if (!sg || !ts) {
+      console.warn(`[gnews] sem assinatura (HTTP ${page.status}, ${html.length} bytes) ${id.slice(0, 24)}`);
+      return null;
+    }
     const payload = [
       "garturlreq",
       [["X", "X", ["X", "X"], null, null, 1, 1, "US:en", null, 1, null, null, null, null, null, 0, 1], "X", "X", 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0],
@@ -320,14 +328,18 @@ export async function resolveGoogleNewsArticle(gnewsUrl: string, timeoutMs = 600
     const text = await res.text();
     const m = text.match(/\\"garturlres\\",\\"(https?:[^"\\]+)/) ?? text.match(/garturlres[^h]+(https?:\/\/[^"\\]+)/);
     const url = m?.[1]?.replace(/\\u003d/g, "=").replace(/\\u0026/g, "&");
-    if (!url || isGoogleNewsLink(url)) return null;
+    if (!url || isGoogleNewsLink(url)) {
+      console.warn(`[gnews] decodificação falhou (HTTP ${res.status}) ${text.slice(0, 120).replace(/\s+/g, " ")}`);
+      return null;
+    }
     let image: string | undefined;
     try {
       const art = await fetch(url, { headers, signal: signal(), cache: "no-store", redirect: "follow" });
       if (art.ok) image = findOgImage(await readHead(art), art.url || url);
     } catch {}
     return { url, image };
-  } catch {
+  } catch (e) {
+    console.warn(`[gnews] erro: ${e instanceof Error ? e.message : e}`);
     return null;
   }
 }

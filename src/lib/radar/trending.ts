@@ -14,6 +14,9 @@ const STOP = new Set(
 
 export function keywords(title: string): Set<string> {
   const words = title
+    .replace(/playstation plus|ps plus/gi, "psplus")
+    .replace(/game pass/gi, "gamepass")
+    .replace(/disc-to-digital|disco f[ií]sico para digital/gi, "disc2digital")
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
@@ -64,8 +67,8 @@ export function trendingTopics(items: RadarItem[], { minSources = 2, maxAgeHours
     const count = new Map<string, number>();
     for (const g of group) count.set(g.section, (count.get(g.section) ?? 0) + 1);
     const section = [...count.entries()].sort((a, b) => b[1] - a[1])[0][0] as RadarItem["section"];
-    // manchete: a com mais palavras-chave em comum com o resto do grupo
-    const rep = [...group].sort((a, b) => b.title.length - a.title.length)[0];
+    // manchete representativa: a mais próxima de ~75 caracteres (nem telegráfica, nem enorme)
+    const rep = [...group].sort((a, b) => Math.abs(a.title.length - 75) - Math.abs(b.title.length - 75))[0];
     topics.push({ key: sorted[0].id, title: rep.title, items: sorted, sources, latest: sorted[0].publishedAt, section });
   }
   return topics.sort((a, b) => b.sources.length - a.sources.length || +new Date(b.latest) - +new Date(a.latest));
