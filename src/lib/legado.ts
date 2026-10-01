@@ -1,6 +1,6 @@
 // Matérias do site antigo (Weebly, 2018–2020), migradas para o novo BuffOrDie.
-// As imagens ainda apontam para o servidor antigo; o importador (/api/importar-legado)
-// copia cada uma para o Supabase Storage e troca o link antes de publicar.
+// Já importadas em 01/10/2026 (imagens copiadas para o Storage, autor: Rick). Este arquivo
+// segue no projeto para os redirecionamentos 301 dos endereços antigos (next.config.ts).
 import type { SectionSlug } from "./sections";
 
 export type LegacyPost = {
