@@ -1,0 +1,24 @@
+name: Verificar fontes do Radar
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["src/lib/radar/**", "scripts/check-feeds.ts"]
+  schedule:
+    - cron: "17 11 * * 1" # toda segunda, 08:17 (Brasília)
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node scripts/check-feeds.ts

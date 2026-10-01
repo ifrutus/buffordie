@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { categories } from "@/lib/content";
+import { sections } from "@/lib/sections";
+import { UserMenu } from "./user-menu";
 
 export function Logo() {
   return (
@@ -14,48 +15,41 @@ export function Logo() {
   );
 }
 
+const nav = [{ href: "/radar", label: "Radar" }, ...sections.map((s) => ({ href: `/secao/${s.slug}`, label: s.name }))];
+
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4">
         <Logo />
-        <nav className="hidden flex-1 items-center gap-1 md:flex" aria-label="Seções">
-          {categories.map((c) => (
+        <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="Seções">
+          {nav.map((n) => (
             <Link
-              key={c.slug}
-              href={`/categoria/${c.slug}`}
+              key={n.href}
+              href={n.href}
               className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-panel hover:text-white"
             >
-              {c.name}
+              {n.label}
             </Link>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/busca"
-            className="hidden rounded-md border border-line px-3 py-2 text-sm text-zinc-400 transition hover:text-white sm:block"
-          >
-            Buscar jogos…
-          </Link>
-          <Link
-            href="/entrar"
-            className="rounded-md bg-acid px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110"
-          >
-            Entrar
-          </Link>
+          <form action="/busca" className="hidden sm:block" role="search">
+            <label htmlFor="busca-topo" className="sr-only">Buscar</label>
+            <input
+              id="busca-topo"
+              name="q"
+              placeholder="Buscar jogos…"
+              className="w-40 rounded-md border border-line bg-panel px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:w-56 focus:border-acid focus:outline-none md:transition-all"
+            />
+          </form>
+          <UserMenu />
         </div>
       </div>
-      <nav
-        className="flex gap-1 overflow-x-auto border-t border-line px-4 py-2 md:hidden"
-        aria-label="Seções (mobile)"
-      >
-        {categories.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/categoria/${c.slug}`}
-            className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-zinc-300"
-          >
-            {c.name}
+      <nav className="flex gap-1 overflow-x-auto border-t border-line px-4 py-2 lg:hidden" aria-label="Seções (mobile)">
+        {nav.map((n) => (
+          <Link key={n.href} href={n.href} className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-zinc-300">
+            {n.label}
           </Link>
         ))}
       </nav>

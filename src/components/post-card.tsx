@@ -1,65 +1,117 @@
+/* eslint-disable @next/next/no-img-element -- imagens externas das fontes, servidas direto delas */
 import Link from "next/link";
-import { formatDate, getCategory, type Post } from "@/lib/content";
+import { getSection, type SectionSlug } from "@/lib/sections";
+import { timeAgo, type RadarItem } from "@/lib/radar";
+import { formatDate, type Post } from "@/lib/posts";
 
-export function CategoryBadge({ slug }: { slug: string }) {
-  const cat = getCategory(slug);
-  if (!cat) return null;
+const GRADIENTS: Record<SectionSlug, [string, string]> = {
+  noticias: ["#65a30d", "#0a0b0f"],
+  games: ["#0284c7", "#0a0b0f"],
+  atualizacoes: ["#d97706", "#0a0b0f"],
+  competitivo: ["#6d28d9", "#0a0b0f"],
+  reviews: ["#dc2626", "#0a0b0f"],
+};
+
+export function SectionBadge({ slug }: { slug: SectionSlug }) {
+  const s = getSection(slug);
+  if (!s) return null;
   return (
-    <span
-      className={`inline-block rounded px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider ${cat.color}`}
-    >
-      {cat.name}
+    <span className={`inline-block rounded px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider ${s.badge}`}>
+      {s.name}
     </span>
   );
 }
 
 export function Cover({
-  post,
+  image,
+  section,
+  score,
   className = "",
 }: {
-  post: Post;
+  image?: string | null;
+  section: SectionSlug;
+  score?: number | null;
   className?: string;
 }) {
-  const [from, to] = post.cover;
+  const [from, to] = GRADIENTS[section];
   return (
     <div
-      className={`scanlines relative overflow-hidden ${className}`}
-      style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
-      aria-hidden
+      className={`scanlines relative overflow-hidden bg-panel ${className}`}
+      style={image ? undefined : { backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
     >
-      {post.score !== undefined && (
+      {image && (
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
+      {score != null && (
         <span className="absolute right-3 top-3 grid size-12 place-items-center rounded-full border-2 border-white/80 bg-ink/70 font-display text-lg font-bold text-white">
-          {post.score.toFixed(1)}
+          {score.toFixed(1)}
         </span>
       )}
     </div>
   );
 }
 
-export function Stats({ post }: { post: Post }) {
-  return (
-    <div className="flex items-center gap-4 text-xs text-zinc-500">
-      <span>{formatDate(post.publishedAt)}</span>
-      <span aria-label={`${post.likes} curtidas`}>♥ {post.likes}</span>
-      <span aria-label={`${post.comments} comentários`}>💬 {post.comments}</span>
-    </div>
-  );
-}
-
+/** Matéria própria do BuffOrDie. */
 export function PostCard({ post }: { post: Post }) {
   return (
     <article className="group overflow-hidden rounded-xl border border-line bg-panel transition hover:-translate-y-0.5 hover:border-zinc-600">
       <Link href={`/noticias/${post.slug}`} className="block">
-        <Cover post={post} className="aspect-video" />
+        <Cover image={post.coverUrl} section={post.section} score={post.score} className="aspect-video" />
         <div className="space-y-3 p-4">
-          <CategoryBadge slug={post.category} />
-          <h3 className="font-display text-lg font-semibold leading-snug text-white group-hover:text-acid">
-            {post.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <SectionBadge slug={post.section} />
+            <span className="font-display text-[11px] font-bold uppercase tracking-wider text-acid">BuffOrDie</span>
+          </div>
+          <h3 className="font-display text-lg font-semibold leading-snug text-white group-hover:text-acid">{post.title}</h3>
           <p className="line-clamp-2 text-sm text-zinc-400">{post.excerpt}</p>
-          <Stats post={post} />
+          <div className="flex items-center gap-4 text-xs text-zinc-500">
+            <span>{formatDate(post.publishedAt)}</span>
+            <span>♥ {post.likes}</span>
+            <span>💬 {post.comments}</span>
+          </div>
         </div>
       </Link>
     </article>
+  );
+}
+
+/** Notícia de outra fonte: título, resumo curto e link para a matéria original. */
+export function RadarCard({ item, compact = false }: { item: RadarItem; compact?: boolean }) {
+  return (
+    <article className="group overflow-hidden rounded-xl border border-line bg-panel transition hover:border-zinc-600">
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex h-full flex-col">
+        {!compact && <Cover image={item.image} section={item.section} className="aspect-video" />}
+        <div className="flex flex-1 flex-col gap-2 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <SectionBadge slug={item.section} />
+            <span className="text-xs font-medium text-zinc-400">{item.sourceName}</span>
+          </div>
+          <h3 className="font-display text-base font-semibold leading-snug text-white group-hover:text-acid">{item.title}</h3>
+          {!compact && item.excerpt && <p className="line-clamp-2 text-sm text-zinc-400">{item.excerpt}</p>}
+          <p className="mt-auto pt-1 text-xs text-zinc-500">
+            <time dateTime={item.publishedAt}>{timeAgo(item.publishedAt)}</time> · ler no {item.sourceName} ↗
+          </p>
+        </div>
+      </a>
+    </article>
+  );
+}
+
+export function RadarRow({ item }: { item: RadarItem }) {
+  return (
+    <li>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="group block space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+          {item.sourceName} · {timeAgo(item.publishedAt)}
+        </p>
+        <p className="font-medium leading-snug text-white group-hover:text-acid">{item.title}</p>
+      </a>
+    </li>
   );
 }
