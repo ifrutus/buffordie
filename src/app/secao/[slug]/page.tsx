@@ -34,7 +34,7 @@ export default async function SectionPage({ params }: PageProps<"/secao/[slug]">
 
       {posts.length > 0 && (
         <section className="mt-8">
-          <h2 className="mb-4 font-display text-xl font-bold text-white">Do BuffOrDie</h2>
+          <h2 className="mb-4 font-display text-xl font-bold text-white">Do Buff or Die</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {posts.map((p) => <PostCard key={p.id} post={p} />)}
           </div>

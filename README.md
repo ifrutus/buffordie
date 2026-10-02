@@ -1,4 +1,4 @@
-# BuffOrDie 🎮
+# Buff or Die 🎮
 
 O hub de games do Brasil — notícias, games, atualizações, competitivo e reviews, com comunidade (login, curtidas e comentários) e o **Radar**, que reúne as últimas dos principais sites de games do país.
 
@@ -33,7 +33,7 @@ As chaves públicas do Supabase já vêm como padrão em `src/lib/supabase/env.t
 
 `src/lib/radar/` lê os feeds RSS das fontes a cada 15 min, classifica cada notícia numa seção por palavras-chave e mostra **título, resumo curto e link para a matéria original** (nunca o texto completo — o conteúdo é das fontes).
 
-- Cada notícia tem uma página própria no BuffOrDie (`/radar/[id]`) com resumo, crédito, botão para a matéria original, curtidas, comentários e "outras fontes falando disso". Essas páginas são `noindex` com canonical apontando para a fonte (o Google credita o original).
+- Cada notícia tem uma página própria no Buff or Die (`/radar/[id]`) com resumo, crédito, botão para a matéria original, curtidas, comentários e "outras fontes falando disso". Essas páginas são `noindex` com canonical apontando para a fonte (o Google credita o original).
 - Notícias que chegam pelo Google Notícias têm o link real e a foto oficial (og:image) descobertos e guardados por 7 dias; miniaturas são trocadas pela versão grande.
 - O Radar inteiro é montado uma vez a cada 15 min e compartilhado entre as páginas.
 - `trending.ts` agrupa notícias de fontes diferentes sobre o mesmo assunto ("Assuntos do momento" na home e pautas da redação).

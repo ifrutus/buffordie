@@ -66,7 +66,7 @@ export async function createPost(formData: FormData) {
     reading_minutes: Math.max(1, Math.round(words / 200)),
     tags,
     author_id: auth.user.id,
-    author_name: profile?.display_name || profile?.username || "Redação BuffOrDie",
+    author_name: profile?.display_name || profile?.username || "Redação Buff or Die",
     category_id: cat!.id,
   });
   if (error) fail(error.message.includes("row-level security") ? "Seu usuário não tem permissão de redação." : error.message);

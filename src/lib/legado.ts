@@ -1,4 +1,4 @@
-// Matérias do site antigo (Weebly, 2018–2020), migradas para o novo BuffOrDie.
+// Matérias do site antigo (Weebly, 2018–2020), migradas para o novo Buff or Die.
 // Já importadas em 01/10/2026 (imagens copiadas para o Storage, autor: Rick). Este arquivo
 // segue no projeto para os redirecionamentos 301 dos endereços antigos (next.config.ts).
 import type { SectionSlug } from "./sections";
@@ -18,7 +18,7 @@ export type LegacyPost = {
 
 const U = "http://buffordie.com.br/uploads/8/9/5/9/89592829/";
 const credit = (who: string, when?: string) =>
-  `\n\n— Publicado originalmente no BuffOrDie${when ? ` em ${when}` : ""}${who ? `, por ${who}` : ""}.`;
+  `\n\n— Publicado originalmente no Buff or Die${when ? ` em ${when}` : ""}${who ? `, por ${who}` : ""}.`;
 
 export const legacyPosts: LegacyPost[] = [
   {

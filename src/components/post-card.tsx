@@ -87,7 +87,7 @@ export function Cover({
   );
 }
 
-/** Matéria própria do BuffOrDie. */
+/** Matéria própria do Buff or Die. */
 export function PostCard({ post }: { post: Post }) {
   return (
     <article className="group overflow-hidden rounded-xl border border-line bg-panel transition hover:-translate-y-0.5 hover:border-zinc-600">
@@ -96,7 +96,7 @@ export function PostCard({ post }: { post: Post }) {
         <div className="space-y-3 p-4">
           <div className="flex items-center gap-2">
             <SectionBadge slug={post.section} />
-            <span className="font-display text-[11px] font-bold uppercase tracking-wider text-acid">BuffOrDie</span>
+            <span className="font-display text-[11px] font-bold uppercase tracking-wider text-acid">Buff or Die</span>
           </div>
           <h3 className="font-display text-lg font-semibold leading-snug text-white group-hover:text-acid">{post.title}</h3>
           <p className="line-clamp-2 text-sm text-zinc-400">{post.excerpt}</p>
@@ -111,7 +111,7 @@ export function PostCard({ post }: { post: Post }) {
   );
 }
 
-/** Notícia de outra fonte: abre a página do BuffOrDie (resumo, comunidade e link para a matéria original). */
+/** Notícia de outra fonte: abre a página do Buff or Die (resumo, comunidade e link para a matéria original). */
 export function RadarCard({ item, compact = false }: { item: RadarItem; compact?: boolean }) {
   return (
     <article className="group overflow-hidden rounded-xl border border-line bg-panel transition hover:-translate-y-0.5 hover:border-zinc-600">

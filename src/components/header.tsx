@@ -4,7 +4,7 @@ import { UserMenu } from "./user-menu";
 
 export function Logo() {
   return (
-    <Link href="/" className="group flex items-center gap-2" aria-label="BuffOrDie — início">
+    <Link href="/" className="group flex items-center gap-2" aria-label="Buff or Die — início">
       <span className="grid size-8 place-items-center rounded-md bg-acid font-display text-sm font-bold text-ink transition group-hover:rotate-6">
         B/D
       </span>

@@ -56,7 +56,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/entrar">)
   return (
     <div className="mx-auto max-w-md px-4 py-14">
       <h1 className="font-display text-3xl font-bold text-white">{modo === "cadastro" ? "Crie sua conta" : "Entre pro squad"}</h1>
-      <p className="mt-2 text-zinc-400">Curta, comente e participe da comunidade BuffOrDie.</p>
+      <p className="mt-2 text-zinc-400">Curta, comente e participe da comunidade Buff or Die.</p>
 
       {modo !== "senha" && (
         <nav className="mt-6 grid grid-cols-3 gap-1 rounded-lg border border-line bg-panel p-1 text-sm" aria-label="Forma de entrar">

@@ -10,13 +10,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.buffordie.com.br"),
   title: {
-    default: "BuffOrDie — O hub de games do Brasil",
-    template: "%s | BuffOrDie",
+    default: "Buff or Die — O hub de games do Brasil",
+    template: "%s | Buff or Die",
   },
   description:
     "Notícias, reviews, gameplays e e-sports. O hub de games do Brasil, feito por quem joga.",
   openGraph: {
-    siteName: "BuffOrDie",
+    siteName: "Buff or Die",
     locale: "pt_BR",
     type: "website",
   },

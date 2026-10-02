@@ -75,7 +75,7 @@ export default async function PublicProfile({ params }: PageProps<"/u/[username]
               <span className="rounded bg-acid px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wider text-ink">{ROLE[p.role]}</span>
             )}
           </div>
-          <p className="text-zinc-500">@{p.username} · no BuffOrDie desde {since}</p>
+          <p className="text-zinc-500">@{p.username} · no Buff or Die desde {since}</p>
           {p.bio && <p className="max-w-xl whitespace-pre-line text-zinc-300">{p.bio}</p>}
         </div>
       </header>

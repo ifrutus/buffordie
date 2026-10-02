@@ -17,7 +17,7 @@ export async function getHotDiscussions(posts: Post[], radar: RadarItem[], limit
   for (const d of data) {
     if (d.kind === "post") {
       const p = posts.find((x) => x.id === d.target_id);
-      if (p) out.push({ kind: "post", id: p.id, title: p.title, href: `/noticias/${p.slug}`, source: "BuffOrDie", comments: d.comments, likes: d.likes });
+      if (p) out.push({ kind: "post", id: p.id, title: p.title, href: `/noticias/${p.slug}`, source: "Buff or Die", comments: d.comments, likes: d.likes });
     } else {
       const r = radar.find((x) => x.id === d.target_id);
       if (r) out.push({ kind: "radar", id: r.id, title: r.title, href: `/radar/${r.id}`, source: r.sourceName, comments: d.comments, likes: d.likes });

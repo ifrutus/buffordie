@@ -118,7 +118,7 @@ export default async function Home() {
       {/* Matérias próprias */}
       {morePosts.length > 0 && (
         <section className="mt-14">
-          <h2 className="mb-6 font-display text-2xl font-bold text-white">Do BuffOrDie</h2>
+          <h2 className="mb-6 font-display text-2xl font-bold text-white">Do Buff or Die</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {morePosts.map((p) => <PostCard key={p.id} post={p} />)}
           </div>
@@ -147,7 +147,7 @@ export default async function Home() {
 
       <section className="mt-16 overflow-hidden rounded-2xl border border-line bg-gradient-to-r from-volt/30 via-panel to-acid/20 p-8 sm:p-12">
         <h2 className="font-display text-3xl font-bold text-white">Entre pro squad.</h2>
-        <p className="mt-2 max-w-xl text-zinc-300">Crie sua conta para curtir e comentar as matérias do BuffOrDie.</p>
+        <p className="mt-2 max-w-xl text-zinc-300">Crie sua conta para curtir e comentar as matérias do Buff or Die.</p>
         <Link href="/entrar" className="mt-6 inline-block rounded-md bg-acid px-6 py-3 font-semibold text-ink hover:brightness-110">
           Criar conta grátis
         </Link>

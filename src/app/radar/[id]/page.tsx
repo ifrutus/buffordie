@@ -76,7 +76,7 @@ export default async function RadarItemPage({ params }: PageProps<"/radar/[id]">
             Ler a matéria completa no {item.sourceName} ↗
           </a>
           <p className="mt-3 text-xs text-zinc-500">
-            Conteúdo de {item.sourceName}. O BuffOrDie reúne as notícias e abre o debate aqui embaixo.
+            Conteúdo de {item.sourceName}. O Buff or Die reúne as notícias e abre o debate aqui embaixo.
           </p>
         </div>
 
@@ -98,7 +98,7 @@ export default async function RadarItemPage({ params }: PageProps<"/radar/[id]">
 
         {posts.length > 0 && (
           <section className="mt-14">
-            <h2 className="mb-6 font-display text-2xl font-bold text-white">Do BuffOrDie</h2>
+            <h2 className="mb-6 font-display text-2xl font-bold text-white">Do Buff or Die</h2>
             <div className="grid gap-6 sm:grid-cols-2">
               {posts.map((p) => <PostCard key={p.id} post={p} />)}
             </div>

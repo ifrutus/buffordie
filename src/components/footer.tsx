@@ -37,7 +37,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-line px-4 py-6 text-center text-xs text-zinc-500">
-        © {new Date().getFullYear()} BuffOrDie. Notícias do Radar pertencem às respectivas fontes, com link para a matéria original.
+        © {new Date().getFullYear()} Buff or Die. Notícias do Radar pertencem às respectivas fontes, com link para a matéria original.
       </div>
     </footer>
   );

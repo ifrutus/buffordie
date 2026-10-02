@@ -96,7 +96,7 @@ export default async function RedacaoPage({ searchParams }: PageProps<"/redacao"
           <h2 className="font-display text-xl font-bold text-white">{pauta ? "Nova matéria sobre a pauta" : "Nova matéria"}</h2>
           {pauta && (
             <p className="text-sm text-zinc-400">
-              Escreva com suas palavras, com o ângulo do BuffOrDie — não copie o texto das fontes. As fontes já foram
+              Escreva com suas palavras, com o ângulo do Buff or Die — não copie o texto das fontes. As fontes já foram
               adicionadas no fim do texto.
             </p>
           )}

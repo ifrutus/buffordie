@@ -73,7 +73,7 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
               {post.score.toFixed(1)}
             </span>
             <div>
-              <p className="font-display text-sm uppercase tracking-widest text-acid">Veredito BuffOrDie</p>
+              <p className="font-display text-sm uppercase tracking-widest text-acid">Veredito Buff or Die</p>
               <p className="mt-1 text-zinc-300">
                 {post.score >= 9 ? "BUFF — obrigatório." : post.score >= 7 ? "Vale muito a pena." : post.score >= 5 ? "Só para fãs do gênero." : "DIE — passe longe."}
               </p>
