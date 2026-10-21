@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/ad-slot";
 import { PostCard, RadarCard } from "@/components/post-card";
 import { getPosts } from "@/lib/posts";
 import { getRadarBySection } from "@/lib/radar";
@@ -40,6 +41,8 @@ export default async function SectionPage({ params }: PageProps<"/secao/[slug]">
           </div>
         </section>
       )}
+
+      {posts.length > 0 && <AdSlot placement="secao" className="mt-10" />}
 
       <section className="mt-10">
         <h2 className="mb-4 font-display text-xl font-bold text-white">📡 Pelo Radar</h2>

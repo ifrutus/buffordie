@@ -53,6 +53,19 @@ Para liberar alguém: a pessoa entra no site uma vez e depois, no SQL Editor do 
 update profiles set role = 'editor' where id = (select id from auth.users where email = 'email@dela.com');
 ```
 
+## Monetização (AdSense)
+
+Tudo fica **desligado** até a variável `NEXT_PUBLIC_ADSENSE_CLIENT` existir na Vercel. Passo a passo:
+
+1. Suba a conta da Vercel para o plano **Pro** (o plano Hobby não permite anúncios).
+2. Cadastre `buffordie.com.br` no AdSense e copie o ID do editor (`ca-pub-…`).
+3. Na Vercel → Settings → Environment Variables, crie `NEXT_PUBLIC_ADSENSE_CLIENT` e faça um novo deploy. Isso já publica a meta tag de verificação e o `/ads.txt`.
+4. Depois da aprovação, crie 4 blocos de display no AdSense e preencha `NEXT_PUBLIC_ADSENSE_SLOT_ARTIGO`, `_LATERAL`, `_HOME` e `_SECAO` (veja `.env.example`).
+
+Onde os anúncios aparecem: fim da matéria, coluna lateral da matéria (desktop), home (antes das faixas de seção) e páginas de seção. As páginas do Radar ficam **sem anúncio** de propósito: o conteúdo é das fontes, e o AdSense recusa anúncio em página com conteúdo de terceiros.
+
+O script do Google só carrega depois de o visitante clicar em **Aceitar todos** no banner de cookies (`src/components/cookie-consent.tsx`). Para ver os espaços antes da aprovação, use `NEXT_PUBLIC_ADS_PREVIEW=1` (ou `npm run dev`).
+
 ## Banco (Supabase)
 
 - `supabase/migrations/` — SQL aplicado no projeto (tabelas, RLS, seções, matéria de boas-vindas).
@@ -89,3 +102,7 @@ src/
 - [x] "Assuntos do momento" e "Mais comentadas" na home
 - [ ] Upload de imagem de capa (Supabase Storage) e edição de matérias
 - [ ] SEO: sitemap, RSS próprio, imagens de compartilhamento
+- [x] Páginas Sobre, Contato e Política de Privacidade (LGPD) + banner de cookies
+- [x] Espaços de anúncio e ads.txt prontos (desligados até configurar o AdSense)
+- [ ] Criar o e-mail contato@buffordie.com.br na HostGator
+- [ ] Pedir aprovação no AdSense e subir a Vercel para o plano Pro antes de ligar os anúncios

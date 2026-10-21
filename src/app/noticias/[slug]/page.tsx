@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/ad-slot";
 import { Comments } from "@/components/comments";
 import { LikeButton } from "@/components/like-button";
 import { RichText } from "@/components/rich-text";
@@ -81,6 +82,8 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
           </aside>
         )}
 
+        <AdSlot placement="artigo" className="mt-10" />
+
         <div className="mt-10 flex flex-wrap items-center gap-3 border-y border-line py-6">
           <LikeButton target={{ kind: "post", id: post.id }} initial={post.likes} />
           <span className="text-sm text-zinc-500">Curtiu? Compartilhe com o squad.</span>
@@ -98,16 +101,19 @@ export default async function PostPage({ params }: PageProps<"/noticias/[slug]">
         )}
       </article>
 
-      {radar.length > 0 && (
-        <aside className="lg:pt-24">
-          <div className="sticky top-24 rounded-2xl border border-line bg-panel p-5">
-            <h2 className="font-display text-sm font-bold uppercase tracking-widest text-acid">📡 {section?.name} no Radar</h2>
-            <ol className="mt-4 space-y-4">
-              {radar.map((i) => <RadarRow key={i.id} item={i} />)}
-            </ol>
-          </div>
-        </aside>
-      )}
+      <aside className="lg:pt-24">
+        <div className="sticky top-24 space-y-6">
+          {radar.length > 0 && (
+            <div className="rounded-2xl border border-line bg-panel p-5">
+              <h2 className="font-display text-sm font-bold uppercase tracking-widest text-acid">📡 {section?.name} no Radar</h2>
+              <ol className="mt-4 space-y-4">
+                {radar.map((i) => <RadarRow key={i.id} item={i} />)}
+              </ol>
+            </div>
+          )}
+          <AdSlot placement="lateral" className="hidden lg:block" />
+        </div>
+      </aside>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import "@fontsource/chakra-petch/700.css";
 import "@fontsource-variable/inter";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { CookieConsent } from "@/components/cookie-consent";
+import { ADSENSE_CLIENT, adsEnabled } from "@/lib/ads";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +22,8 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
+  // Verificação do site no AdSense (o Google lê esta meta tag; o script de anúncios só carrega com consentimento).
+  other: adsEnabled ? { "google-adsense-account": ADSENSE_CLIENT } : undefined,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -32,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <CookieConsent />
       </body>
     </html>
   );

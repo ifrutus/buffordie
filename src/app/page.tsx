@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "@/components/ad-slot";
 import { Cover, PostCard, RadarCard, RadarRow, SectionBadge } from "@/components/post-card";
 import { getPosts, formatDate } from "@/lib/posts";
 import { getHotDiscussions } from "@/lib/community";
@@ -124,6 +125,8 @@ export default async function Home() {
           </div>
         </section>
       )}
+
+      <AdSlot placement="home" className="mt-14" />
 
       {/* Uma faixa por seção */}
       {sections.map((s) => {

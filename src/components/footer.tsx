@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "./header";
 import { sections } from "@/lib/sections";
 import { sources } from "@/lib/radar/sources";
+import { CookiePreferencesButton } from "./cookie-consent";
 
 export function Footer() {
   return (
@@ -37,6 +38,12 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-line px-4 py-6 text-center text-xs text-zinc-500">
+        <nav aria-label="Institucional" className="mb-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-zinc-400">
+          <Link href="/sobre" className="hover:text-acid">Sobre</Link>
+          <Link href="/contato" className="hover:text-acid">Contato</Link>
+          <Link href="/privacidade" className="hover:text-acid">Privacidade</Link>
+          <CookiePreferencesButton className="hover:text-acid" />
+        </nav>
         © {new Date().getFullYear()} Buff or Die. Notícias do Radar pertencem às respectivas fontes, com link para a matéria original.
       </div>
     </footer>
