@@ -4,7 +4,7 @@ import { RadarCard } from "@/components/post-card";
 import { getRadar } from "@/lib/radar";
 import { sources } from "@/lib/radar/sources";
 
-export const revalidate = 900;
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Radar",
@@ -24,7 +24,7 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
         <p className="font-display text-sm uppercase tracking-widest text-acid">📡 Radar</p>
         <h1 className="mt-1 font-display text-4xl font-bold text-white">Tudo de games, num lugar só</h1>
         <p className="mt-2 max-w-2xl text-zinc-400">
-          As últimas dos principais sites de games do Brasil, atualizadas a cada 15 minutos. Clique para ler a
+          As últimas dos principais sites de games do Brasil, atualizadas a cada 30 minutos. Clique para ler a
           matéria completa na fonte original.
         </p>
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filtrar por fonte">

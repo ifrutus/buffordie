@@ -15,13 +15,15 @@ import { sources } from "./sources.ts";
 export type { RadarItem };
 
 /** Quanto tempo (s) cada feed fica em cache antes de ser lido de novo. */
-export const RADAR_REVALIDATE = 900;
+export const RADAR_REVALIDATE = 1800;
 
 const nextFetcher = (url: string) =>
   fetch(url, {
     headers: defaultHeaders,
     signal: AbortSignal.timeout(8000),
-    next: { revalidate: RADAR_REVALIDATE, tags: ["radar"] },
+    // Sem cache por feed: o Radar inteiro já é guardado de uma vez (radarShared). Cachear cada feed
+    // gerava ~10 gravações extras a cada rodada.
+    cache: "no-store",
   });
 
 /** Link real + foto de uma notícia do Google Notícias — resolvido uma vez e guardado por 7 dias. */
@@ -85,7 +87,7 @@ async function buildRadar(): Promise<RadarItem[]> {
 }
 
 /**
- * O Radar inteiro é montado uma vez a cada 15 min e compartilhado por todas as páginas
+ * O Radar inteiro é montado uma vez a cada 30 min e compartilhado por todas as páginas
  * (assim o Google Notícias não recebe dezenas de pedidos simultâneos).
  */
 const radarShared = unstable_cache(buildRadar, ["radar-all-v2"], { revalidate: RADAR_REVALIDATE, tags: ["radar"] });

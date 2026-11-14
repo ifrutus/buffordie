@@ -10,7 +10,7 @@ import { formatDate, getPost, getPosts } from "@/lib/posts";
 import { getRadarBySection } from "@/lib/radar";
 import { getSection } from "@/lib/sections";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return (await getPosts({ limit: 50 })).map((p) => ({ slug: p.slug }));

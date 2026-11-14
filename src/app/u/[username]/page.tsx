@@ -5,7 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { getRadar } from "@/lib/radar";
 import { supabasePublic } from "@/lib/supabase/server";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return [];

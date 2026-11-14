@@ -9,7 +9,7 @@ import { getRadar, getRadarItem, timeAgo } from "@/lib/radar";
 import { relatedCoverage } from "@/lib/radar/trending";
 import { getSection } from "@/lib/sections";
 
-export const revalidate = 900;
+export const revalidate = 1800;
 
 // Páginas geradas sob demanda e guardadas em cache (ISR).
 export async function generateStaticParams() {

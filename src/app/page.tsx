@@ -7,7 +7,7 @@ import { getRadar } from "@/lib/radar";
 import { trendingTopics } from "@/lib/radar/trending";
 import { sections } from "@/lib/sections";
 
-export const revalidate = 900; // 15 min, igual ao cache do Radar
+export const revalidate = 1800; // 30 min, igual ao cache do Radar
 
 export default async function Home() {
   const [posts, radar] = await Promise.all([getPosts({ limit: 50 }), getRadar()]);

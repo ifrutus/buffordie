@@ -21,10 +21,14 @@ export async function supabaseServer() {
   });
 }
 
-/** Cliente anônimo para leituras públicas — não toca em cookies, então as páginas podem ser cacheadas. */
+/**
+ * Cliente anônimo para leituras públicas — não toca em cookies, então as páginas podem ser cacheadas.
+ * Cache de 1 h: publicar uma matéria chama updateTag("posts") e atualiza na hora.
+ * (Era 60 s e fazia home/seções serem regeradas a cada minuto, estourando as ISR Writes do plano Hobby.)
+ */
 export function supabasePublic() {
   return createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: (input, init) => fetch(input, { ...init, next: { revalidate: 60, tags: ["posts"] } }) },
+    global: { fetch: (input, init) => fetch(input, { ...init, next: { revalidate: 3600, tags: ["posts"] } }) },
   });
 }

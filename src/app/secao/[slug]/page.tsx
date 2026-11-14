@@ -6,7 +6,7 @@ import { getPosts } from "@/lib/posts";
 import { getRadarBySection } from "@/lib/radar";
 import { getSection, sections } from "@/lib/sections";
 
-export const revalidate = 900;
+export const revalidate = 1800;
 
 export function generateStaticParams() {
   return sections.map((s) => ({ slug: s.slug }));
@@ -51,7 +51,7 @@ export default async function SectionPage({ params }: PageProps<"/secao/[slug]">
             {radar.map((i) => <RadarCard key={i.id} item={i} />)}
           </div>
         ) : (
-          <p className="text-zinc-400">Nada novo por aqui agora — as fontes são atualizadas a cada 15 minutos.</p>
+          <p className="text-zinc-400">Nada novo por aqui agora — as fontes são atualizadas a cada 30 minutos.</p>
         )}
       </section>
     </div>
